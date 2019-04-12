@@ -4,3 +4,4 @@ terraform/aws/terraform.tfstate.backup
 terraform/gcp/.terraform
 terraform/gcp/terraform.tfstate
 terraform/gcp/terraform.tfstate.backup
+terraform/gcp/*.json
