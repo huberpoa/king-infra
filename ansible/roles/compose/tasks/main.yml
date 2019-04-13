@@ -1,0 +1,36 @@
+---
+
+- name: Create docker directory
+  file:
+    path: /opt/docker
+    state: directory
+
+- name: Copy docker-compose
+  copy:
+    src: docker-compose.yml
+    dest: /opt/docker/docker-compose.yml
+
+#- name: Copy Dockerfile-nginx
+#  copy:
+#    src: Dockerfile-nginx
+#    dst: /opt/docker/Dockerfile-nginx
+#
+#- name: Copy Dockerfile-app1
+#  copy:
+#    src: Dockerfile-app1
+#    dst: /opt/docker/Dockerfile-app1
+
+- name: Copy Dockerfile-app1
+  copy:
+    src: Dockerfile-app
+    dest: /opt/docker/Dockerfile-app
+
+- name: Copy build script
+  copy:
+    src: build.sh
+    dest: /opt/docker/build.sh
+    mode: 0744
+
+- name: Build docker images
+  become: yes
+  command: /opt/docker/build.sh 1.0

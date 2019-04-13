@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  ##
+  ## http proxy
+  nginx:
+    #build:
+    #  dockerfile: /opt/docker/Dockerfile-nginx
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+    volumes:
+      - /opt/nginx/conf.d:/etc/nginx/conf.d:ro
+
+  ##
+  ## app server with php-fpm
+  app1:
+    build:
+      context: /opt/application
+      dockerfile: /opt/docker/Dockerfile-app
+    container_name: app1
+    image: app${VERSION}
+    restart: always

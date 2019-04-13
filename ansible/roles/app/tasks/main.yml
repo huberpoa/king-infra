@@ -1,0 +1,32 @@
+---
+##
+## nginx stuff
+- name: Create nginx config directory
+  file:
+    path: /opt/nginx/conf.d
+    state: directory
+    recurse: true
+
+- name: Copy nginx-default.conf
+  copy:
+    src: nginx-default.conf
+    dest: /opt/nginx/conf.d/default.conf
+
+- name: Copy nginx-app1.conf
+  copy:
+    src: nginx-app1.conf
+    dest: /opt/nginx/conf.d/app1.conf
+
+##
+## application files
+- name: Application directory
+  file:
+    path: /opt/application
+    state: directory
+
+- name: Copy application files to server
+  copy:
+    src: "{{ item }}"
+    dest: /opt/application
+  with_fileglob:
+    - ../../../application/*

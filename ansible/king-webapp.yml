@@ -1,0 +1,25 @@
+---
+##
+## general configurations for everyone
+- hosts: all
+  become: yes
+  roles:
+    - common
+
+##
+## ec2 configurations only
+- hosts: ec2
+  become: yes
+  roles:
+    - docker
+    - app
+    - compose
+
+##
+## gcp configurations only
+- hosts: gcp
+  become: yes
+  roles:
+    - docker
+    - app
+    - compose
