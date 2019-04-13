@@ -1,0 +1,17 @@
+FROM alpine:latest
+
+RUN apk update && apk upgrade
+RUN apk add php7 php7-fpm
+
+RUN mkdir /home/app
+RUN chmod -R 755 /home/app
+
+RUN sed -i "s|listen = 127.0.0.1:9000|listen = 0.0.0.0:9000 |g" /etc/php7/php-fpm.d/www.conf
+
+WORKDIR /home/app
+
+COPY . .
+
+EXPOSE 9000
+
+CMD ["php-fpm7", "-F"]

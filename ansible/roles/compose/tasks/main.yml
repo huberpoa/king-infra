@@ -5,15 +5,20 @@
     path: /opt/docker
     state: directory
 
+- name: Copy Dockerfile-nginx
+  copy:
+    src: Dockerfile-nginx
+    dest: /opt/docker/Dockerfile-nginx
+
+- name: Copy Dockerfile-app1
+  copy:
+    src: Dockerfile-app1
+    dest: /opt/docker/Dockerfile-app1
+
 - name: Copy docker-compose
   copy:
     src: docker-compose.yml
     dest: /opt/docker/docker-compose.yml
-
-- name: Copy Dockerfile-app1
-  copy:
-    src: Dockerfile-app
-    dest: /opt/docker/Dockerfile-app
 
 - name: Copy build script
   copy:

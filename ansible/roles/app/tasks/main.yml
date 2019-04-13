@@ -7,6 +7,17 @@
     state: directory
     recurse: true
 
+- name: Create ngnix certificates directory
+  file:
+    path: /opt/nginx/certs
+    state: directory
+    recurse: true
+
+- name: Copy nginx.conf
+  copy:
+    src: nginx.conf
+    dest: /opt/nginx/nginx.conf
+
 - name: Copy nginx-default.conf
   copy:
     src: nginx-default.conf
@@ -30,3 +41,12 @@
     dest: /opt/application
   with_fileglob:
     - ../../../application/*
+
+##
+## SSL Certificates
+- name: Copy ssl certs for app1
+  copy:
+    src: "{{ item }}"
+    dest: /opt/nginx/certs
+  with_fileglob:
+    - ../../../certs/app1/*

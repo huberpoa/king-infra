@@ -4,9 +4,9 @@ services:
   ##
   ## http proxy
   nginx:
-    #build:
-    #  dockerfile: /opt/docker/Dockerfile-nginx
-    image: nginx:alpine
+    build:
+      context: /opt/nginx
+      dockerfile: /opt/docker/Dockerfile-nginx
     container_name: nginx
     ports:
       - "80:80"
@@ -20,7 +20,7 @@ services:
   app1:
     build:
       context: /opt/application
-      dockerfile: /opt/docker/Dockerfile-app
+      dockerfile: /opt/docker/Dockerfile-app1
     container_name: app1
     image: app${VERSION}
     restart: always
