@@ -10,16 +10,6 @@
     src: docker-compose.yml
     dest: /opt/docker/docker-compose.yml
 
-#- name: Copy Dockerfile-nginx
-#  copy:
-#    src: Dockerfile-nginx
-#    dst: /opt/docker/Dockerfile-nginx
-#
-#- name: Copy Dockerfile-app1
-#  copy:
-#    src: Dockerfile-app1
-#    dst: /opt/docker/Dockerfile-app1
-
 - name: Copy Dockerfile-app1
   copy:
     src: Dockerfile-app
