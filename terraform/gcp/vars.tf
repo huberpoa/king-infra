@@ -1,13 +1,13 @@
 ##
 ## Use your aws information
 provider "google" {
-  project     = "project-name"
-  region      = "region"
-  credentials = "credentialfile.json"
+  project     = "kinghost-237418"
+  region      = "us-central1"
+  credentials = "kinghost-237418-271b55013f11.json"
 }
 
 ##
 ## Inform the name of your existing ssh key
 variable "ssh_key_path" {
-  #default = "you_ssh_key_path"
+  default = "rfranzen_king-lab.pub"
 }
