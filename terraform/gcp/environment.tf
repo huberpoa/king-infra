@@ -24,12 +24,6 @@ resource "google_compute_firewall" "default" {
 }
 
 ##
-## Define network
-#resource "google_compute_network" "default" {
-#  name = "default"
-#}
-
-##
 ## Define the vps using latest Ubuntu LTS 18.04
 resource "google_compute_instance" "vm_instance" {
   name         = "sandbox-${random_id.instance_id.hex}"
