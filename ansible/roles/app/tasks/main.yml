@@ -37,7 +37,7 @@
 
 - name: Clone application repository
   git:
-    repo: https://gitlab.com/rfranzen/sandbox-app.git
+    repo: https://gitlab.com/USERNAME/PUBLIC_REPOSITORY.git
     dest: /opt/application
     update: no
     version: master

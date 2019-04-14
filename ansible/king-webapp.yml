@@ -20,7 +20,7 @@
 - hosts: gcp
   become: yes
   roles:
+    - supervisor
     - docker
     - app
     - compose
-    - supervisor
