@@ -1,5 +1,5 @@
 ---
 - name: Install packages
   apt:
-    name: ["vim", "htop"]
+    name: ["vim", "htop", "supervisor", "webhook"]
     state: present

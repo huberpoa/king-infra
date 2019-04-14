@@ -1,0 +1,22 @@
+[
+ {
+ "id": "build-environment",
+ "execute-command": "/opt/docker/build.sh",
+ "command-working-directory": "/opt/docker",
+ "response-message": "Rebuilding Docker environment",
+ "include-command-output-in-response": true,
+ "trigger-rule":
+ {
+ "match":
+ {
+ "type": "value",
+ "value": "NDkyMTNlY2ZWYwYWZmOGExMGRjZGY0MjQyNTQxNGYxRhZjVhNzNlZDVlNTJmYjE4",
+ "parameter":
+ {
+ "source": "payload",
+ "name": "token"
+ }
+ }
+ }
+ }
+ ]

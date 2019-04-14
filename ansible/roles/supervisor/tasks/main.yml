@@ -1,0 +1,12 @@
+---
+##
+## supervisor config
+- name: Supervisor configuration
+  copy:
+    src: gitlab-webhook.conf
+    dest: /etc/supervisor/conf.d
+
+- name: Webhook configuration
+  copy:
+    src: gitlab.json
+    dest: /etc/webhook/gitlab.json

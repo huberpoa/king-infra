@@ -35,12 +35,12 @@
     path: /opt/application
     state: directory
 
-- name: Copy application files to server
-  copy:
-    src: "{{ item }}"
+- name: Clone application repository
+  git:
+    repo: https://gitlab.com/rfranzen/sandbox-app.git
     dest: /opt/application
-  with_fileglob:
-    - ../../../application/*
+    update: no
+    version: master
 
 ##
 ## SSL Certificates
