@@ -12,7 +12,7 @@ git reset --hard
 git pull
 
 cd /opt/docker
-echo "VERSION=$(date +\%Y-\%m-\%d_\%T)" > .env
+echo "VERSION=$(date +\%Y-\%m-\%d_\%H\%M\%S)" > .env
 
 docker-compose build
 docker-compose stop
