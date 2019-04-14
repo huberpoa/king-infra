@@ -1,5 +1,19 @@
 ---
 ##
+## webhooks directory
+- name: Webhooks directory
+  file:
+    path: /etc/webhook
+    state: directory
+    recurse: true
+
+- name: Webhooks logs
+  file:
+    path: /var/log/webhook
+    state: directory
+    recurse: true
+
+##
 ## supervisor config
 - name: Supervisor configuration
   copy:
