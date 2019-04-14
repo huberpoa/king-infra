@@ -5,7 +5,39 @@
 Editar o arquivo *terraform/gcp/vars.tf* informando seus dados para a criançao
  do ambiente.
 
-Depois o script build_environment.sh pode ser executado para o setup do ambiente.
+Depois o script build_environment.sh pode ser executado para o setup do
+ ambiente.
+
+
+#### Aplicação
+Para este desafio, parti de um princípio que a aplicação fica em um repositório
+ diferente. Nos meus testes criei um repositório público no gitlab com um
+ arquivo simples em PHP:
+```
+<?php phpinfo(); ?>
+```
+
+Não encontrei uma forma simples e dinâmica para disparar a ação automática no
+ servidor de aplicação, portanto é necessário inserir o endereço do servidor no
+ arquivo .gitlab-ci.yml (identificado como "IP_DO_SERVIDOR_AQUI")
+```
+stages:
+  - deploy
+
+deploy_application:
+  stage: deploy
+  script: "curl -i -X POST -H 'Content-type: application/json' -d '{\"token\": \"NDkyMTNlY2ZWYwYWZmOGExMGRjZGY0MjQyNTQxNGYxRhZjVhNzNlZDVlNTJmYjE4\"}' http://IP_DO_SERVIDOR_AQUI:9088/hooks/build-environment"
+  only:
+    - master
+```
+Assim, a cada commit no branch master da aplicação, o webhook será chamado, ele
+ vai fazer um pull no repositório e criar um novo container com a nova versão.
+
+Optei por não utilizar um repositório fechado e deixar a pré-configuração ainda
+ mais complexa por conta das chaves.
+
+Depois que vocês criarem este repositório, o endereço do mesmo deverá ser
+ inserido em: *ansible/roles/app/tasks/main.yml* na linha **40**.
 
 
 #### Ansible
@@ -23,14 +55,15 @@ Pronto, depois que o Ansible finalizar a execução é só acessar o servidor vi
 
 ## Ferramentas
 ### Terraform
-
+Nenhuma configuração excepcional foi feita no Terraform, apenas o padrão para a
+ criação do ambiente.
 
 ### Ansible
 Foi utilizado uma role de um terceiro para a instalação do Docker no Ansible:
  https://github.com/geerlingguy/ansible-role-docker
 
 ### Docker
-Usar versao no nome da imagem: https://docs.docker.com/compose/environment-variables/
+O Docker-compose foi utilizado para a definição dos containers.
 
 
 ## Decisões
@@ -49,6 +82,11 @@ Ainda faço um adendo em relação à esta minha primeira experiência com o ans
  Achei a execução dele extremamente lenta. Talvez pelo fato de eu não conhecer
  muito bem a ferramenta, não tenha explorado totalmente as opções disponíveis
  para customização e otimização.
+
+Também não sinto que consegui montar um cenário que seja escalável da forma que
+ eu gostaria. Este cenário sim, atende à proposta do desafio, porém eu ficaria
+ mais satisfeito com algo que pudesse ser expandido para cenários diferentes
+ com mais facilidade.
 
 ### TERRAFORM
 Comecei o projeto pensando em utilizar a AWS visto que já tinha familiaridade
