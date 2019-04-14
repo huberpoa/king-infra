@@ -1,6 +1,3 @@
-#[local]
-#127.0.0.1 ansible_connection=local
-
 #[ec2]
 #your_host_on_ec2 ansible_user=ubuntu
 
