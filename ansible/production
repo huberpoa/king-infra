@@ -1,0 +1,5 @@
+[ec2]
+#your_host_on_ec2 ansible_user=ubuntu
+
+[gcp]
+#your_host_on_gcp ansible_ssh_user=ubuntu
