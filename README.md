@@ -1,6 +1,8 @@
 # Desafio Kinghost
 ## Execução
 ### Pré-configuração
+**Todo o cenário foi desenvolvido e testado utilizando o Gitlab e GCP.**
+
 #### Terraform
 Editar o arquivo *terraform/gcp/vars.tf* informando seus dados para a criançao
  do ambiente.
