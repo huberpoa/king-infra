@@ -12,10 +12,10 @@ resource "google_compute_instance" "vm_instance" {
     }
   }
 
-  // Adding SSH Public Key in Project Meta Data
+  // Adiciona a SSH Publica nos dados do projeto, já criado o usuário
   metadata {
-    // insert your public sshkey here
-    ssh-keys = ""
+    // importante estar no formato usuario:chave
+    ssh-keys = "usuarioAtual:rsa-usuárioautal"
   }
 
   network_interface {

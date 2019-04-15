@@ -112,6 +112,7 @@
 
 - name: create conf.d
   command: mkdir -p /etc/nginx/conf.d
+
 - name: Add websites
   template:
     src: ./templates/sites.conf.j2

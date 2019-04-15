@@ -1,6 +1,6 @@
 ---
-- name: Deploy kubernetes
-  hosts: kubernetes
+- name: Deploy do servidor de produção
+  hosts: production
   vars_files:
     - defaults/main.yml
 
@@ -9,3 +9,4 @@
       - docker
       - nginx
       - ssh-key
+      - gitlab-runner-prod

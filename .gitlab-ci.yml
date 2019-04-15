@@ -1,0 +1,31 @@
+stages:
+- build
+- deploy
+
+variables:
+  REGISTRY: "lab.gabrielpetry.com.br:5555"
+  IMAGE_NAME: "app"
+  IMAGE: lab.gabrielpetry.com.br:5555/root/app
+  PORT: "1234"
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $REGISTRY
+
+build:
+  stage: build
+  script:
+      - docker build --pull -t $IMAGE .
+      - docker push $IMAGE
+  only:
+    - master
+
+deploy:
+    stage: deploy
+    script:
+        - "docker pull $IMAGE"
+        - "docker stop $IMAGE_NAME 2>/dev/null || true"
+        - "docker container prune -f"
+        - "docker run -p \"$PORT:80\" -d --name $IMAGE_NAME $IMAGE"
+    only:
+        - master
+

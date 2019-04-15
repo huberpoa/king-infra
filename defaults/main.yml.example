@@ -1,11 +1,10 @@
 ---
 # Gitlab Runner Config options
-gitlab_runner_count: 1
-gitlab_runner_prefix: "docker-runner"
 
+gitlab_runner_registration_token: ""
 # Set domain name
-gitlab_url: "https://gitlab.exemplo.com.br"
-gitlab_vhost: "gitlab.exemplo.com.br"
+gitlab_url: "https://lab.exemplo.com.br"
+gitlab_vhost: "lab.exemplo.com.br"
 gitlab_with_ssl: true
 
 
@@ -15,9 +14,6 @@ nginx_sites_enabled: [
         hostnames: ["site.exemplo.com.br"],
         port: "1234",
         username: "exemplo",
-        error_pages: {"404": "/404.html", "500": "/500.html"},
-        index: ["index.html", "index.php"],
-        force_ssl: true,
     },
 ]
 

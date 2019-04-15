@@ -30,25 +30,12 @@
 
 - name: Set gitlab-runner to group Docker
   shell: "usermod -G dockerroot gitlab-runner"
-- name: Extract Runner Registration Token directly from gitlab-rails console
-  become: true
-  shell: |
-    echo "Gitlab::CurrentSettings.current_application_settings.runners_registration_token" |
-    gitlab-rails console --environment=production
-  register: gitlab_runner_registration_token
-
-- name: Parse token from response
-  set_fact:
-    gitlab_runner_registration_token: "{{ gitlab_runner_registration_token.stdout | regex_search(regexp, '\\1') | list | first }}"
-  vars:
-    regexp: 'runners_registration_token\n\"([^\"]+)'
 
 - name: Unregister all previously used Gitlab Runners
   shell: "gitlab-runner unregister --all-runners"
 
 - name: Register Gitlab Docker Runners using shell executor
-  shell: "gitlab-runner register --non-interactive --url '{{gitlab_url}}' --registration-token '{{gitlab_runner_registration_token}}' --description '{{gitlab_runner_prefix}}-{{ item }}' --executor docker --docker-image \"docker:latest\" --docker-privileged"
-  loop: "{{ range(1,gitlab_runner_count + 1)|list }}"
+  shell: "gitlab-runner register --non-interactive --url '{{gitlab_url}}' --registration-token '{{gitlab_runner_registration_token}}' --description 'shell-runner' --executor shell"
 
 - name: set concurrent number of runners in gitlab-runner config
   ini_file:
@@ -56,7 +43,5 @@
     section: 
     option: concurrent
     value: "{{ gitlab_runner_count }}"
-
-
 
 - debug: msg="{{gitlab_runner_registration_token}}"
