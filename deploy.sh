@@ -2,9 +2,9 @@
 # Limpa máquinas antigas
 # Define o usuário que deve ser utilizado pelo ansible,
 # Deve ser o mesmo usuário da chave informa na criação do terraform
-$REMOTE_USER = ""
+REMOTE_USER="petry"
 
-echo '' > hosts
+ echo '' > hosts
 # Impede que o ansible verifique as chaves SSH do destino, em produção deve ser removida essa instrução.
 export ANSIBLE_HOST_KEY_CHECKING=False
 # Aplica as configurações do terraform
