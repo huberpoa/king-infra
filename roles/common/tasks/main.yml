@@ -1,0 +1,5 @@
+---
+- name: Install RedHat-like packages
+  yum: 
+    name: ['htop', 'curl', 'vim', 'ca-certificates', 'openssh-server']
+    state: latest

@@ -1,0 +1,62 @@
+---
+- name: Install GitlabCI Multi Runner Repo
+  yum_repository:
+    name: runner_gitlab-ci-multi-runner
+    description: GitlabCI Multi Runner
+    baseurl: https://packages.gitlab.com/runner/gitlab-ci-multi-runner/el/7/$basearch
+    gpgkey: https://packages.gitlab.com/runner/gitlab-ci-multi-runner/gpgkey
+    gpgcheck: no
+    repo_gpgcheck: yes
+    enabled: yes
+    metadata_expire: 300
+
+- name: Install GitlabCI Multi Runner Source Repo
+  yum_repository:
+    name: runner_gitlab-ci-multi-runner-source
+    description: GitlabCI Multi Runner
+    baseurl: https://packages.gitlab.com/runner/gitlab-ci-multi-runner/el/7/SRPMS
+    gpgcheck: no
+    repo_gpgcheck: yes
+    sslverify: yes
+    enabled: yes
+    gpgkey: https://packages.gitlab.com/runner/gitlab-ci-multi-runner/gpgkey
+    sslcacert: /etc/pki/tls/certs/ca-bundle.crt
+    metadata_expire: 300
+
+- name: Install gitlab-ci-multi-runner RPM
+  yum:
+    name: gitlab-ci-multi-runner
+    state: latest
+
+- name: Set gitlab-runner to group Docker
+  shell: "usermod -G dockerroot gitlab-runner"
+- name: Extract Runner Registration Token directly from gitlab-rails console
+  become: true
+  shell: |
+    echo "Gitlab::CurrentSettings.current_application_settings.runners_registration_token" |
+    gitlab-rails console --environment=production
+  register: gitlab_runner_registration_token
+
+- name: Parse token from response
+  set_fact:
+    gitlab_runner_registration_token: "{{ gitlab_runner_registration_token.stdout | regex_search(regexp, '\\1') | list | first }}"
+  vars:
+    regexp: 'runners_registration_token\n\"([^\"]+)'
+
+- name: Unregister all previously used Gitlab Runners
+  shell: "gitlab-runner unregister --all-runners"
+
+- name: Register Gitlab Docker Runners using shell executor
+  shell: "gitlab-runner register --non-interactive --url '{{gitlab_url}}' --registration-token '{{gitlab_runner_registration_token}}' --description '{{gitlab_runner_prefix}}-{{ item }}' --executor docker --docker-image \"docker:latest\" --docker-privileged"
+  loop: "{{ range(1,gitlab_runner_count + 1)|list }}"
+
+- name: set concurrent number of runners in gitlab-runner config
+  ini_file:
+    path: /etc/gitlab-runner/config.toml
+    section: 
+    option: concurrent
+    value: "{{ gitlab_runner_count }}"
+
+
+
+- debug: msg="{{gitlab_runner_registration_token}}"

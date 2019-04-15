@@ -1,0 +1,11 @@
+---
+- name: Deploy kubernetes
+  hosts: kubernetes
+  vars_files:
+    - defaults/main.yml
+
+  roles:
+      - common
+      - docker
+      - nginx
+      - ssh-key

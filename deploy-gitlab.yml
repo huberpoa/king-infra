@@ -1,0 +1,11 @@
+---
+- name: Deploy Gitlab and Runners
+  hosts: gitlab
+  vars_files:
+    - defaults/main.yml
+
+  roles:
+    - common
+    - docker
+    - gitlab
+    - gitlab-runner

@@ -1,0 +1,31 @@
+resource "google_compute_instance" "vm_instance" {
+  // one machine for gitlab and one for nginx
+  count        = 2
+  name         = "infra-${count.index}"
+  machine_type = "n1-standard-2"
+
+  tags = ["gitlab", "http-server", "https-server"]
+
+  boot_disk {
+    initialize_params {
+      image = "centos-7"
+    }
+  }
+
+  // Adding SSH Public Key in Project Meta Data
+  metadata {
+    // insert your public sshkey here
+    ssh-keys = ""
+  }
+
+  network_interface {
+    network = "default"
+
+    access_config {
+    }
+  }
+  // adiciona o ip de cada máquia no arquivos hosts do ansible
+  provisioner "local-exec" {
+      command = "echo \"\n${self.network_interface.0.access_config.0.nat_ip}\" | tee -a hosts"
+  }
+}

@@ -1,76 +1,64 @@
-# Divertindo-se com Infra as Code - Desafio Prático
+<!-- vim: wrap -->
 
-## O que é?
+# Infra ágil
 
-Este projeto faz parte do processo seletivo para o cargo de Analista de Infraestrutura Ágil da KingHost. :)
+Esse projeto faz parte do desafio [infra-agil](https://github.com/huberpoa/king-infra).
 
-Este desafio foi projetado a fim de medir seu nível de conhecimento com tecnologias DevOps e players de cloud pública, e suas capacidades de propor novas ideias e arquiteturas para nossos serviços, sempre com o foco de manter os ambientes seguros.
+## Qual o objetivo do projeto
 
-## Introdução
+Esse projeto visa criar um ambiente seguro e simples para o gerencimento e deploy de aplicações, fornecendo de maneira simples
+a configuração de duas máquinas virtuais no Google Cloud Platform, uma máquina serve para execução do Gitlab CE provendo o gerenciamento de versões
+e integração continua para a aplicação, e outro servidor para a execução de um ambiente de produção com NGINX realizindo uma conexão de proxy para containers
+docker que estão em execução no host.
 
-Um de nossos projetos internos necessita de um novo ambiente que permita desenvolvimento e deploy de forma automatizada e contínua. Para isto, você, no papel de Analista de Infraestrutura Ágil, foi chamado para elaborar uma infraestrutura a fim de atender a esta demanda dos times de desenvolvimento.
+## Como que a estrutura é criada
 
-Para isto, foram estipuladas algumas necessidades, as quais devem ser atendidas:
+As ferramentas que foram utilizadas para a criação da estrutura foram:
 
-* A infraestrutura deverá ser provisionada na AWS ou GCP usando ferramenta de gerenciamento de infraestrutura como código, sem utilização de ferramentas próprias desses players (crie uma conta gratuita para prosseguir);
-* Deverá ser instalada e configurada uma ferramenta de CI/CD de sua preferência usando ferramentas de automação de IT;
-* Deverá ser criado um pipeline de push deploy dentro da ferramenta de CI/CD, a qual será responsável por reconstruir a imagem em caso de alterações em seus requisitos e publicá-la no servidor de produção, e;
-* **(Extra)** Toda arquitetura deverá ser disponibilizada através da execução de um simples shell script.
+- Terraform:
 
-A principal ideia aqui é que você **faça por você mesmo (DIY)**.
-	
-## Requisitos técnicos
+    O Terraform é uma forma muito simples para criar servidores e possui um potencial gigantesco para escalar infraestruturas. Nesse projeto ele é responsável por gerenciar as máquinas que serão criadas no Google Cloud com suas definições padrões.
 
-Para realização deste desafio, deverão ser observados os seguintes requisitos:
+> terraform plan
+> terraform apply
 
-* A aplicação deverá ser hospedada em ambiente conteinerizado, com os seguintes requisitos:
-	* A imagem deve partir de um sistema operacional limpo (Ubuntu ou Alpine), sem adicionais instalados;
-	* Nessa imagem, deverá executar um web server + PHP-FPM, e a aplicação deverá ser hospedada em /home/app;
-* A máquina onde rodará a aplicação deverá conter um web server Nginx, o qual se comunicará com o container via proxy, e deverá escutar nas portas 80 e 443;
-* A infraestrutura proposta deverá contemplar a possibilidade de utilização por múltiplos projetos, e;
-* Obviamente, todo o código da infraestrutura deve estar versionado. :)
-	
-As configurações devem, sempre, prezar pelas boas práticas de segurança, com principal atenção aos seguintes pontos:
+- Ansible:
 
-* O acesso aos servidores deverá ser possível apenas utilizando chave SSH;
-* O repositório não deverá contar com nenhum arquivo que possua dados sensíveis **(caráter eliminatório)**;
-* Priorizar sempre o acesso HTTPS (o certificado poderá ser auto-assinado para fins do desafio).
+    Ansible é um gerenciador de configurações simples e poderoso, ele é utilizado nesse projeto para que sejam instaladas todas as depêndencias de compilação, assim como os programas que provem os serviços propostos (gitlab-ce, gitlab-runner, nginx, docker ...)
 
-Documentação é primordial! Então, priorize os comentários em seu código sempre que possível. :)
+> ansible-playbook -i hosts  deploy-gitlab.yml -u $REMOTE\_USER -b
+> ansible-playbook -i hosts  deploy-production.yml -u $REMOTE\_USER -b
 
-## Por onde começar?
+- Gitlab-CE
+    
+    Gitlab servira para dois própositos, permite que você tenha repositórios armazenados localmente deve uma forma bastante simples, mas também irá servir como a aplicação de CI, a escolha pelo Gitlab é devido a simplicidade que ele proporciona para a configuração de CI.
 
-Para ajudá-lo em sua jornada, abaixo tem algumas fontes de documentação que você poderá utilizar, caso não saibas por onde iniciar.
 
-* https://github.com/terraform-providers
-* https://github.com/ansible/ansible-examples
-* https://hub.docker.com/
 
-Você tem alguma dúvida? Você pode enviar um e-mail para alessandro.santos@kinghost.com.br a qualquer momento, que iremos o mais breve possível retorná-lo. ;)
-	
-## Entregáveis
+- NGINX
 
-Ao final do desafio, você deverá realizar um "pull request" neste repositório, o qual deverá conter o seguinte conteúdo:
+    Nginx é um servidor com uma configuração bastate simples, performático e com pouco consumo de recursos, por isso a escolha dele para servir de proxy para os containeres do docker.
 
-* Todo e qualquer arquivo necessário para que possamos reproduzir a infra criada em nossas contas nos players supracitados, e;
-* Arquivo README.md, contendo:
-	* Instruções de como executar a infraestrutura entregue;
-	* Ferramentas utilizadas, e o por que estas foram escolhidas para a realização do desafio, e;
-	* Decisões adotadas durante o planejamento e execução do desafio, justificando-as.
 
-**IMPORTANTE: Mesmo que você não consiga concluir o desafio por completo, envie o que você conseguiu fazer!** Iremos avaliar todo e qualquer desenvolvimento que você nos apresentar! O mais importante deste desafio é, que ao final dele, você adquira novos conhecimentos ou aprimore os que você já possui. ;)
+## Como utilizar a ferramenta
 
-Após, envie e-mail para o e-mail nicole.santos@kinghost.com.br, com cópia para alessandro.santos@kinghost.com.br e douglas@kinghost.com.br, com o assunto **"Desafio Prático Infraestrutura Ágil"**, sinalizando a entrega do desafio para avaliação.
+Para utilizar o serviço serão necessários alguns passos iniciais:
 
-## Prazo para conclusão
+- Criar uma conta no GPC.
+- Configurar um projeto no GPC
+- Realizar o [download](https://cloud.google.com/genomics/downloading-credentials-for-api-access?hl=pt-br) das credenciais de acesso e copiar para a raiz-do-projeto/credentials.json
+- Configurar a rede VPC Default com firewall liberando acesso a prota 5555 para todas as VMS.
 
-Está informado no e-mail enviado junto com o endereço deste desafio.
+Após essa configuração precisamos ajustar os arquivos de configuração.
 
-## O que será avaliado?
+> terraform init
+WIP 
 
-* Flexibilidade
-* Maneira como você está entregando este desafio
-* Capacidade de tomada de decisões técnicas
-* Complexidade
-	
-**Good luck and having fun! ;)**
+
+TODO: //
+Configurar o gitlab-runner no servidor de produção para que o CD funcione corretamente.
+
+
+
+
+
