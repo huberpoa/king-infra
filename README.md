@@ -104,17 +104,15 @@ Copie o arquivo provider.tf.example para provider.tf e ajuste as seguintes confi
 
 1. Quando a instalação do gitlab for concluida o script irá aguardar a configuração de um repositório 
 
-    1.1. Para configurar o repositório, será necessário:
+    1.1. Acessar a url de instalação do gitlab e informar uma nova senha de root.
 
-        1.1. Acessar a url de instalação do gitlab e informar uma nova senha de root.
+    1.1. Em seguida é necessário logar no gitlab com o usuário root e a senha que acabou de configurar.
 
-        1.1. Em seguida é necessário logar no gitlab com o usuário root e a senha que acabou de configurar.
+    1.1. Criar um novo projeto, a fim de facilitar os testes pode-se importar o projeto que se encontra nesse repositório https://github.com/gabrielpetry/nginx-fpm-docker, e utilizar o slug e nome do repositório como **app**, utilize a opção importar -> Repo by URL
 
-        1.1. Criar um novo projeto, a fim de facilitar os testes pode-se importar o projeto que se encontra nesse repositório https://github.com/gabrielpetry/nginx-fpm-docker, e utilizar o slug e nome do repositório como **app**, utilize a opção importar -> Repo by URL
+    1.1. Após criar o repositório deve ser acessado o caminho /root/app/settings/ci_cd e anotar o token de registro do runner.
 
-        1.1. Após criar o repositório deve ser acessado o caminho /root/app/settings/ci_cd e anotar o token de registro do runner.
-
-        1.1. Inserir o token de registro do runner na variavél WIP gitlab_runner_registration_token
+    1.1. Inserir o token de registro do runner na variavél WIP gitlab_runner_registration_token
 
 1. Quando concluir a configuração do token em defaults/main.yml basta prescionar alguma tecla para dar seguimento no execução do script.
 
