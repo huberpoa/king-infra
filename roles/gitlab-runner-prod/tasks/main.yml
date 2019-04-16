@@ -42,6 +42,6 @@
     path: /etc/gitlab-runner/config.toml
     section: 
     option: concurrent
-    value: "{{ gitlab_runner_count }}"
+    value: "1"
 
 - debug: msg="{{gitlab_runner_registration_token}}"
