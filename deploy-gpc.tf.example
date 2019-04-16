@@ -1,5 +1,20 @@
+// configura a rede no google, permitindo trafego na porta 5555
+resource "google_compute_firewall" "default" {
+  name    = "http-and-gitlab"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["5555", "80", "443", "8080"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+  source_tags   = ["gitlab"]
+}
+
+
 resource "google_compute_instance" "vm_instance" {
-  // one machine for gitlab and one for nginx
+  // uma máquina para o gitlab e uma máquina para o servidor de produção.
   count        = 2
   name         = "infra-${count.index}"
   machine_type = "n1-standard-2"
@@ -12,10 +27,10 @@ resource "google_compute_instance" "vm_instance" {
     }
   }
 
-  // Adiciona a SSH Publica nos dados do projeto, já criado o usuário
+  // Adding SSH Public Key in Project Meta Data
   metadata {
-    // importante estar no formato usuario:chave
-    ssh-keys = "usuarioAtual:rsa-usuárioautal"
+    // ajustar para o seu usuário e caminho da sua chave pública
+    ssh-keys = "petry:${file("~/.ssh/id_rsa.pub")}"
   }
 
   network_interface {
@@ -24,7 +39,7 @@ resource "google_compute_instance" "vm_instance" {
     access_config {
     }
   }
-  // adiciona o ip de cada máquia no arquivos hosts do ansible
+  // adiciona o ip da máquina atual para o arquivo ./hosts
   provisioner "local-exec" {
       command = "echo \"\n${self.network_interface.0.access_config.0.nat_ip}\" | tee -a hosts"
   }
