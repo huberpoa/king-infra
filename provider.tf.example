@@ -1,0 +1,6 @@
+provider "google" {
+  credentials = "${file("credentials.json")}"
+  project = "my-project"
+  region  = "southamerica-east1"
+  zone    = "southamerica-east1-b"
+}

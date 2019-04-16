@@ -1,0 +1,14 @@
+---
+- name: Create app group
+  group:
+    name: "app"
+
+- name: Create the user with docker access
+  user:
+      name: app
+      groups: app, dockerroot
+      shell: /bin/bash
+      generate_ssh_key: yes
+      ssh_key_bits: 2048
+      ssh_key_file: .ssh/id_rsa
+

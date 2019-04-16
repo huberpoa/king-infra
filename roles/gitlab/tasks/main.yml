@@ -1,0 +1,24 @@
+---
+- name: Download gitlab repo
+  get_url: url=https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh dest=/usr/src/gitlab.rpm.sh mode=0755 validate_certs=no
+
+- name: Install gitlab repo
+  shell: /usr/src/gitlab.rpm.sh
+
+- name: Install gitlab
+  yum: name=gitlab-ce state=latest
+
+- name: Adjust hosts
+  lineinfile: dest=/etc/hosts line="127.0.0.1 {{gitlab_vhost}}" state=present
+
+
+- name: Copy template
+  template: src=gitlab.rb.j2 dest=/etc/gitlab/gitlab.rb owner=root group=root mode=0600
+
+- name: Configure gitlab
+  command: gitlab-ctl reconfigure
+
+- name: Generate Let's Encrypt
+  command: gitlab-ctl renew-le-certs
+  when: gitlab_with_ssl
+

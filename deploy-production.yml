@@ -1,0 +1,12 @@
+---
+- name: Deploy do servidor de produção
+  hosts: production
+  vars_files:
+    - defaults/main.yml
+
+  roles:
+      - common
+      - docker
+      - nginx
+      - ssh-key
+      - gitlab-runner-prod

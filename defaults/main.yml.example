@@ -1,0 +1,27 @@
+---
+# Gitlab Runner Config options
+
+gitlab_runner_registration_token: ""
+# Set domain name
+gitlab_url: "https://lab.exemplo.com.br"
+gitlab_vhost: "lab.exemplo.com.br"
+gitlab_with_ssl: true
+
+
+
+nginx_sites_enabled: [
+    {
+        hostnames: ["site.exemplo.com.br"],
+        port: "1234",
+        username: "exemplo",
+    },
+]
+
+# Nginx conf
+nginx_version: "nginx-1.15.11"
+nginx_source_download: "http://nginx.org/download/{{ nginx_version }}.tar.gz"
+nginx_install_dir: "/tmp/{{ nginx_version }}"
+
+# Lets encrypt
+letsencrypt_email: "contato@exemplo.com.br"
+

@@ -1,0 +1,16 @@
+credentials.json
+
+*.retry
+*.tfstate
+*.tfstate.backup
+*.hosts
+hosts
+
+defaults/main.yml
+
+gitRepo/
+provider.tf
+deploy-gpc.tf
+
+.terraform/
+

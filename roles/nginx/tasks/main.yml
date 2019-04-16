@@ -1,0 +1,195 @@
+---
+- name: Public ip
+  uri: 
+    url: http://ifconfig.me/ip
+    return_content: yes
+  register: ip_addres
+
+- name: Add epel-release repo
+  yum:
+    name: "epel-release"
+    state: present
+
+- name: install dependencies for nginx
+  yum:
+    name: [
+        "@Development tools",
+        "gcc",
+        "zlib-devel",
+        "pcre-devel",
+        "openssl-devel",
+        "perl",
+        "perl-devel",
+        "perl-ExtUtils-Embed",
+        "libxslt",
+        "libxslt-devel",
+        "libxml2",
+        "libxml2-devel",
+        "gd",
+        "gd-devel",
+        "git",
+        "letsencrypt"
+    ]
+    state: latest
+
+- name: Download nginx source
+  get_url:
+      url: "{{nginx_source_download}}"
+      dest: "/tmp/{{nginx_version}}.tar.gz"
+  register: nginx_source
+
+- name: Unpack nginx
+  unarchive:
+      copy: no
+      dest: /tmp/
+      src: "{{ nginx_source.dest }}"
+  when: nginx_source.changed
+  register: nginx_source_unpack
+
+- name: Create required build dirs
+  file:
+      path: /etc/nginx
+      state: directory
+      owner: root
+      mode: 0755
+  
+- name: Download latest openssl build
+  git:
+      repo: "https://github.com/openssl/openssl.git"
+      dest: "{{nginx_install_dir}}/openssl"
+      clone: yes
+      force: yes
+  ignore_errors: yes
+
+
+- name: Download latest zlib build
+  git:
+      repo: "https://github.com/madler/zlib.git"
+      dest: "{{nginx_install_dir}}/zlib"
+      clone: yes
+      force: yes
+  ignore_errors: yes
+
+- name: Configure build
+  command: "./configure --prefix=/etc/nginx --prefix=/etc/nginx --sbin-path=/usr/sbin/nginx --error-log-path=/var/log/nginx/error.log --pid-path=/var/run/nginx.pid --lock-path=/var/run/nginx.lock --user=nginx --group=nginx --with-http_ssl_module --with-openssl={{nginx_install_dir}}/openssl --with-zlib={{nginx_install_dir}}/zlib --with-http_v2_module"
+  args:
+      chdir: "{{ nginx_install_dir }}"
+  when: nginx_source_unpack|changed
+  register: nginx_configure
+
+- name: Make
+  command: "make"
+  args:
+      chdir: "{{ nginx_install_dir }}"
+  when: nginx_configure|changed
+
+- name: Make install
+  command: "make install"
+  args:
+      chdir: "{{ nginx_install_dir }}"
+
+
+- name: Add nginx init script
+  template:
+      src: nginx.service
+      dest: /usr/lib/systemd/system/nginx.service
+      owner: root
+      group: root
+      mode: 0755
+
+- name: Add ssl_params.conf to nginx
+  template:
+      src: ssl_params.conf.j2
+      dest: /etc/nginx/conf/ssl_params.conf
+      owner: root
+      group: root
+      mode: 0755
+
+- name: Add nginx conf
+  template:
+    src: ./templates/nginx.conf.j2
+    dest: /etc/nginx/conf/nginx.conf
+
+- name: create conf.d
+  command: mkdir -p /etc/nginx/conf.d
+
+- name: Add websites
+  template:
+    src: ./templates/sites.conf.j2
+    dest: /etc/nginx/conf.d/sites.conf
+
+- name: Create nginx user group
+  group:
+    name: "nginx"
+
+- name: Create nginx user
+  user:
+      name: "nginx"
+      group: "nginx"
+      create_home: yes
+      state: present
+
+- name: Create users groups
+  group:
+    name: "{{item.username}}"
+  loop: "{{nginx_sites_enabled}}"
+
+- name: Create users
+  user:
+      name: "{{item.username}}"
+      group: "{{item.username}}"
+      create_home: true
+      state: present
+      home: "/home/{{item.username}}"
+  loop: "{{nginx_sites_enabled}}"
+
+- name: Create ssl folder inside nginx
+  file:
+      path: "/etc/nginx/certs/{{ item.hostnames[0] }}"
+      state: directory
+      owner: root
+      mode: 0755
+  loop: "{{nginx_sites_enabled}}"
+
+- name: Create letsencrypt challenge folder
+  file:
+      path: "/var/www/{{ item.hostnames[0] }}"
+      state: directory
+      owner: root
+      mode: 0755
+  loop: "{{nginx_sites_enabled}}"
+
+- name: Generate a selfsigned ssl first
+  command: "openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -subj \"/C=US/ST=NY/L=NY/CN=localhost\" -keyout /etc/nginx/certs/{{ item.hostnames[0] }}/key.pem -out /etc/nginx/certs/{{ item.hostnames[0]}}/fullchain.pem"
+  args:
+    creates: "/etc/nginx/{{item.hostnames[0]}}/fullchain.pem"
+  loop: "{{ nginx_sites_enabled }}"
+ 
+- name: Generate DHParams
+  shell: "openssl dhparam -out /etc/nginx/dhparams.pem 2048"
+  args:
+    creates: "/etc/nginx/dhparams.pem"
+
+- name: start nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Configure let's encrypt
+  shell: "letsencrypt certonly -n --webroot -w /var/www/{{ item.hostnames[0] }} -m {{ letsencrypt_email }} --agree-tos -d {{item.hostnames[0]}}"
+  loop: "{{nginx_sites_enabled}}"
+
+
+- name: Copy lets encrypt keys to nginx directory
+  become: yes
+  shell: "cp /etc/letsencrypt/live/{{item.hostnames[0]}}/privkey.pem /etc/nginx/certs/{{item.hostnames[0]}}/key.pem && cp /etc/letsencrypt/live/{{item.hostnames[0]}}/fullchain.pem /etc/nginx/certs/{{item.hostnames[0]}}/fullchain.pem"
+  loop: "{{ nginx_sites_enabled }}"
+  register: letsencrypt_out
+
+
+- debug: msg="{{letsencrypt_out}}"
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted

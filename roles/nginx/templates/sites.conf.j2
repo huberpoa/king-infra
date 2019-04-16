@@ -1,0 +1,38 @@
+# vim: ft=nginx
+{% for site in nginx_sites_enabled %}
+    server {
+      listen 80;
+      server_name {% for hostname in site.hostnames %} {{hostname}} {%endfor%};
+      location ~ ^/\.well-known/ {
+        root /var/www/{{site.hostnames[0]}};
+        break;
+      }
+      location / {
+        return 301 https://{{site.hostnames[0]}}$request_uri;
+      }
+    }
+
+    server {
+        listen 443 ssl http2;
+        server_name {% for hostname in site.hostnames %} {{hostname}} {%endfor%};
+        ssl_certificate /etc/nginx/certs/{{site.hostnames[0]}}/fullchain.pem;
+        ssl_certificate_key /etc/nginx/certs/{{site.hostnames[0]}}/key.pem;
+        include /etc/nginx/conf/ssl_params.conf;
+
+        add_header Strict-Transport-Security "max-age=31536000; includeSubdomains; preload";
+        ssl_session_cache shared:SSL:50m;
+        ssl_session_tickets off;
+
+        root /home/{{site.username}}/www;
+        error_page  404 /404.html;
+        index index.php index.html;
+
+        location / {
+            proxy_redirect          off;
+            proxy_set_header        X-Real-IP $remote_addr;
+            proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header        Host $http_host;
+            proxy_pass              http://127.0.0.1:{{site.port}}/$1;
+        }
+    }
+{% endfor %}

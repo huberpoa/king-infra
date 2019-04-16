@@ -1,0 +1,47 @@
+---
+- name: Install GitlabCI Multi Runner Repo
+  yum_repository:
+    name: runner_gitlab-ci-multi-runner
+    description: GitlabCI Multi Runner
+    baseurl: https://packages.gitlab.com/runner/gitlab-ci-multi-runner/el/7/$basearch
+    gpgkey: https://packages.gitlab.com/runner/gitlab-ci-multi-runner/gpgkey
+    gpgcheck: no
+    repo_gpgcheck: yes
+    enabled: yes
+    metadata_expire: 300
+
+- name: Install GitlabCI Multi Runner Source Repo
+  yum_repository:
+    name: runner_gitlab-ci-multi-runner-source
+    description: GitlabCI Multi Runner
+    baseurl: https://packages.gitlab.com/runner/gitlab-ci-multi-runner/el/7/SRPMS
+    gpgcheck: no
+    repo_gpgcheck: yes
+    sslverify: yes
+    enabled: yes
+    gpgkey: https://packages.gitlab.com/runner/gitlab-ci-multi-runner/gpgkey
+    sslcacert: /etc/pki/tls/certs/ca-bundle.crt
+    metadata_expire: 300
+
+- name: Install gitlab-ci-multi-runner RPM
+  yum:
+    name: gitlab-ci-multi-runner
+    state: latest
+
+- name: Set gitlab-runner to group Docker
+  shell: "usermod -G dockerroot gitlab-runner"
+
+- name: Unregister all previously used Gitlab Runners
+  shell: "gitlab-runner unregister --all-runners"
+
+- name: Register Gitlab Docker Runners using shell executor
+  shell: "gitlab-runner register --non-interactive --url '{{gitlab_url}}' --registration-token '{{gitlab_runner_registration_token}}' --description 'shell-runner' --executor shell"
+
+- name: set concurrent number of runners in gitlab-runner config
+  ini_file:
+    path: /etc/gitlab-runner/config.toml
+    section: 
+    option: concurrent
+    value: "1"
+
+- debug: msg="{{gitlab_runner_registration_token}}"
