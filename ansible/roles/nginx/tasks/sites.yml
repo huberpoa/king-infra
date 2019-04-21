@@ -1,0 +1,8 @@
+---
+- name: creating directory for "{{ gitlab_public_url }}"
+  file:
+    path: /var/www/{{ gitlab_public_url }}
+    owner: root
+    group: root
+    mode: 0755
+    state: directory

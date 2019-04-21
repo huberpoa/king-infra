@@ -1,0 +1,11 @@
+- name: install common packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - git
+      - wget
+      - curl
+      - vim
+    state: present
+    autoclean: yes

@@ -1,0 +1,29 @@
+---
+- name: add apt-key
+  apt_key: 
+    url: http://nginx.org/keys/nginx_signing.key 
+    state: present 
+
+- name: apt repository
+  apt_repository: 
+    repo: 'deb http://nginx.org/packages/mainline/ubuntu/ bionic nginx' 
+    state: present 
+    filename: nginx 
+    update_cache: yes
+
+- name: installing package
+  apt: 
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: copying app site
+  template:
+    src: templates/nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+
+- name: copying app site
+  template:
+    src: templates/app.conf.j2
+    dest: /etc/nginx/conf.d/app.conf
+  notify: test nginx and restart

@@ -1,0 +1,34 @@
+upstream gitlab-workhorse {
+    server unix:/var/opt/gitlab/gitlab-workhorse/socket;
+}
+
+server {
+    listen 80;
+    server_name ec2-3-87-188-119.compute-1.amazonaws.com;
+
+    location ~ (.git/git-receive-pack$|.git/info/refs?service=git-receive-pack$|.git/gitlab-lfs/objects|.git/info/lfs/objects/batch$) {
+        proxy_pass http://gitlab-workhorse;
+        proxy_request_buffering off;
+    }
+
+    location / {
+        root /var/www/ec2-3-87-188-119.compute-1.amazonaws.com;
+    }
+
+    location /gitlab {
+        proxy_pass  http://gitlab-workhorse;
+    }
+
+    location /gitlab/assets {
+        proxy_pass  http://gitlab-workhorse;
+    }
+
+    error_page 404 /404.html;
+    error_page 500 /500.html;
+    error_page 502 /502.html;
+
+    location ~ ^/(404|500|502)(-custom)?\.html$ {
+        root /opt/gitlab/embedded/service/gitlab-rails/public;
+        internal;
+    }
+}

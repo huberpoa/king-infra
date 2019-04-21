@@ -1,0 +1,18 @@
+---
+- name: create self-signed certificate
+  vars:
+    key: /etc/ssl/private/nginx-server.key
+    cert: /etc/ssl/certs/nginx-server.crt
+  command: >
+    openssl req -x509 -nodes -subj '/CN={{ gitlab_public_url }}' -days 365 -newkey rsa:4096 -sha256 -keyout {{ key }} -out {{ cert }} creates={{ cert }}
+
+- name: check dhparams file
+  stat:
+    path: /etc/nginx/dhparams.pem
+  register: dhparams_file
+
+- name: generate dhparams
+  shell: openssl dhparam -out /etc/nginx/dhparams.pem 2048
+  args:
+    creates: /etc/nginx/dhparams.pem
+  when: not dhparams_file.stat.exists

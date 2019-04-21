@@ -1,0 +1,24 @@
+---
+# General config.
+gitlab_git_data_dir: "/var/opt/gitlab/git-data"
+gitlab_edition: "gitlab-ce"
+gitlab_backup_path: "/var/opt/gitlab/backups"
+gitlab_config_template: "gitlab.rb.j2"
+# gitlab_nginx_listen_port: "8090"
+
+# SSL Configuration.
+# gitlab_redirect_http_to_https: "true"
+gitlab_ssl_certificate: "/etc/gitlab/ssl/gitlab.crt"
+gitlab_ssl_certificate_key: "/etc/gitlab/ssl/gitlab.key"
+
+# SSL Self-signed Certificate Configuration.
+gitlab_create_self_signed_cert: "true"
+gitlab_self_signed_cert_subj: "/C=BR/ST=Rio Grande do Sul/L=Porto Alegre/O=BR/CN={{gitlab_public_url}}"
+
+# 2-way SSL Client Authentication support.
+gitlab_nginx_ssl_verify_client: ""
+gitlab_nginx_ssl_client_certificate: ""
+
+# Probably best to leave this as the default, unless doing testing.
+gitlab_restart_handler_failed_when: 'gitlab_restart.rc != 0'
+gitlab_download_validate_certs: true

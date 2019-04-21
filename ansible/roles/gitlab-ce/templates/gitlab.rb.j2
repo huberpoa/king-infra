@@ -1,0 +1,46 @@
+# The URL through which GitLab will be accessed.
+external_url "http://{{ gitlab_public_url }}/gitlab"
+
+nginx['enable'] = false
+
+# Whether to redirect http to https.
+{% if gitlab_redirect_http_to_https is defined %}
+nginx['redirect_http_to_https'] = {{ gitlab_redirect_http_to_https }}
+nginx['ssl_certificate'] = "{{ gitlab_ssl_certificate }}"
+nginx['ssl_certificate_key'] = "{{ gitlab_ssl_certificate_key }}"
+{% endif %}
+
+# The directory where Git repositories will be stored.
+git_data_dirs({"default" => {"path" => "{{ gitlab_git_data_dir }}"} })
+
+# The directory where Gitlab backups will be stored
+gitlab_rails['backup_path'] = "{{ gitlab_backup_path }}"
+
+# GitLab 
+{% if gitlab_nginx_listen_port is defined %}
+nginx['listen_port'] = "{{ gitlab_nginx_listen_port }}"
+{% endif %}
+
+{% if gitlab_nginx_listen_https is defined %}
+nginx['listen_https'] = {{ gitlab_nginx_listen_https }}
+{% endif %}
+
+# 2-way SSL Client Authentication.
+{% if gitlab_nginx_ssl_verify_client %}
+gitlab_default_projects_features_container_registrynginx['ssl_verify_client'] = "{{ gitlab_nginx_ssl_verify_client }}"
+{% endif %}
+{% if gitlab_nginx_ssl_client_certificate %}
+nginx['ssl_client_certificate'] = "{{ gitlab_nginx_ssl_client_certificate }}"
+{% endif %}
+
+#registry_external_url "{{ gitlab_external_url }}:5000"
+
+# Registry configuration
+#gitlab_rails['registry_enabled'] = true
+#gitlab_rails['gitlab_default_projects_features_container_registry'] = false
+#gitlab_rails['registry_path'] = "//var/opt/gitlab/registry"
+
+#registry_nginx['redirect_http_to_https'] = true
+#registry_nginx['listen_port'] = 5000
+#registry_nginx['ssl_certificate'] = "{{ gitlab_ssl_certificate }}"
+#registry_nginx['ssl_certificate_key'] = "{{ gitlab_ssl_certificate_key }}"

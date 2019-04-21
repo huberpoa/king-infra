@@ -1,0 +1,10 @@
+---
+- name: start gitlab
+  command: gitlab-ctl start
+  register: gitlab_start
+  failed_when: gitlab_start_handler_failed_when
+
+- name: restart gitlab
+  shell: | 
+    gitlab-ctl stop
+    gitlab-ctl start
