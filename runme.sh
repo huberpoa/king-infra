@@ -1,5 +1,23 @@
 #!/usr/bin/env bash
 
+
+function help() {
+cat <<EOT
+
+Opções disponíveis:
+-go                          Cria infraestrutura com Terraform, faz teste com Ansible para
+                             verificar se host está em funcionamento e roda Ansible playbook.
+-ae | --ansibleRequirements  Instala os requirements para Ansible.
+-ar | --ansibleRunSite       Roda playbook do Ansible.
+-tc | --terraformCreate      Criar toda infraestrutura com Terraform.
+-to | --terraformOutput      Mostra informações geradas pelo Terraform.
+-td | --terraformDestroy     Destroy toda infraestrutuea com Terraform. Necessário confirmação.
+-rc | --recreate             Utiliza opções -td e -go
+-si | --showInformations     Mostra informações parseadas do Terraform
+-cn | --clientNames          Lista os clientes.
+EOT
+}
+
 # Terminal colors
 red=$(tput setaf 1)
 green=$(tput setaf 2)
@@ -28,12 +46,15 @@ function listProjects() {
 
 # Inputs de variáveis
 if [ -z "${2}" ] && [ "${1}" != "-h" ] && [ "${1}" != "-cn" ]; then
-    echo "Passe o nome do projeto, abaixo segue a lista:"
+    echo "Utilização: bash $0 [OPÇÃO] [NOME DO CLIENTE]"
+
+    help
 
     # Input Field Separator (IFS)
     # Queremos um projeto por linha, como o IFS por padrão é quebra de linha, alteramos o comportamento para ser apenas espaços para obter o resultado desejado.
     IFS=' '
 
+    echo; echo "Clientes disponíveis no momento: "
     echo "${bold}${green}$(listProjects)${reset}"
     exit 1
 fi
@@ -151,22 +172,6 @@ SSH: ssh ubuntu@$(ansibleGetHost) -i ${tls_key}
 EOT
 }
 
-function help() {
-cat <<EOT
-Opções disponíveis:
--go                          Cria infraestrutura com Terraform, faz teste com Ansible para
-                             verificar se host está em funcionamento e roda Ansible playbook.
--ae | --ansibleRequirements  Instala os requirements para Ansible.
--ar | --ansibleRunSite       Roda playbook do Ansible.
--tc | --terraformCreate      Criar toda infraestrutura com Terraform.
--to | --terraformOutput      Mostra informações geradas pelo Terraform.
--td | --terraformDestroy     Destroy toda infraestrutuea com Terraform. Necessário confirmação.
--rc | --recreate             Utiliza opções -td e -go
--si | --showInformations     Mostra informações parseadas do Terraform
--cn | --clientNames          Lista os clientes.
-EOT
-}
-
 # O primeiro parãmetro deve ser algum abaixo.
 case "$1" in
     -go )
@@ -219,4 +224,5 @@ case "$1" in
     -h | --help )
     help
     ;;
+*) help
 esac
