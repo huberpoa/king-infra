@@ -27,7 +27,7 @@ function listProjects() {
 }
 
 # Inputs de variáveis
-if [ -z "${2}" ] && [ "${1}" != "-h" ]; then
+if [ -z "${2}" ] && [ "${1}" != "-h" ] && [ "${1}" != "-cn" ]; then
     echo "Passe o nome do projeto, abaixo segue a lista:"
 
     # Input Field Separator (IFS)
@@ -154,14 +154,16 @@ EOT
 function help() {
 cat <<EOT
 Opções disponíveis:
--go                        Cria infraestrutura com Terraform, faz teste com Ansible para
-                           verificar se host está em funcionamento e roda Ansible playbook.
--ar | --ansibleRunSite     Roda playbook do Ansible.
--tc | --terraformCreate    Criar toda infraestrutura com Terraform.
--to | --terraformOutput    Mostra informações geradas pelo Terraform.
--td | --terraformDestroy   Destroy toda infraestrutuea com Terraform. Necessário confirmação.
--rc | --recreate           Utiliza opções -td e -go
--si | --showInformations   Mostra informações parseadas do Terraform
+-go                          Cria infraestrutura com Terraform, faz teste com Ansible para
+                             verificar se host está em funcionamento e roda Ansible playbook.
+-ae | --ansibleRequirements  Instala os requirements para Ansible.
+-ar | --ansibleRunSite       Roda playbook do Ansible.
+-tc | --terraformCreate      Criar toda infraestrutura com Terraform.
+-to | --terraformOutput      Mostra informações geradas pelo Terraform.
+-td | --terraformDestroy     Destroy toda infraestrutuea com Terraform. Necessário confirmação.
+-rc | --recreate             Utiliza opções -td e -go
+-si | --showInformations     Mostra informações parseadas do Terraform
+-cn | --clientNames          Lista os clientes.
 EOT
 }
 
@@ -205,6 +207,13 @@ case "$1" in
 
     -si | --showInformations )
     showInformations
+    ;;
+
+    -cn | --clientNames )
+    IFS=' '
+
+    echo "Lista de clientes: "
+    echo "${yellow}${bold}$(listProjects)${reset}"
     ;;
 
     -h | --help )
