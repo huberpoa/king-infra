@@ -21,32 +21,37 @@ declare projects=${pathTerraform}/aws/clients
 # Ansible variables
 declare pathAnsible="ansible"
 
+# Lista todos os projetos do diretório do terraform
 function listProjects() {
     ls -1 ${projects}
 }
 
 # Inputs de variáveis
-if [ -z "${2}" ]; then
+if [ -z "${2}" ] && [ "${1}" != "-h" ]; then
     echo "Passe o nome do projeto, abaixo segue a lista:"
 
+    # Input Field Separator (IFS)
+    # Queremos um projeto por linha, como o IFS por padrão é quebra de linha, alteramos o comportamento para ser apenas espaços para obter o resultado desejado.
     IFS=' '
 
     echo "${bold}${green}$(listProjects)${reset}"
     exit 1
 fi
 
+# O segundo parãmetro do script deve ser um projeto que consta no diretório ${projects}
 declare projectName="${2}"
 
 # Chave SSH
 declare tls_key="/tmp/tls_key.pem"
 
-if [ ! -d "${projects}/${project}" ]; then
+if [ ! -d "${projects}/${projectName}" ]; then
     echo "${bold}${red}Projeto não encontrado${reset}"
 
     exit 1
 fi
 
 # Entra no diretorio do projeto e cria toda infraestrutura
+# Caso não queria realizar auto aprovação, comente -auto-approve
 function terraformCreateInfrastructure {
     (
         cd ${projects}/${projectName}
@@ -58,6 +63,15 @@ function terraformCreateInfrastructure {
 
 # Entra no diretorio do projeto e faz a remoção total da infraestrutura
 function terraformDestroyInfrastructure {
+    read -p "Tem certeza que deseja remover TODA infraestrutura?(s/sim): " confirmationDelete
+        
+    # Perguntamos se realmente deseja realizar esta ação
+    if [ "${confirmationDelete}" != "s" ] && [ "${confirmationDelete}" != "sim" ]; then
+        echo "Opção inválida, saindo"
+
+        exit 1
+    fi
+
     (
         cd ${projects}/${projectName}
 
@@ -66,10 +80,17 @@ function terraformDestroyInfrastructure {
 }
 
 function ansibleGetHost() {
+    declare whatInformation="${1}"
+    declare kindInformarion="${whatInformation:=aws_instance_public_dns}"
+
+    if [ "${kindInformarion}" == "ip" ]; then
+        declare kindInformarion="aws_instance_ip"
+    fi
+
     (
         cd ${projects}/${projectName}
 
-        echo "$(terraform output | grep aws_instance_public_dns | sed 's| ||g' | cut -d "=" -f2)"
+        echo "$(terraform output | grep ${kindInformarion} | sed 's| ||g' | cut -d "=" -f2)"
     )
 
 }
@@ -93,28 +114,63 @@ EOT
 }
 
 function ansibleRunSite() {
-    declare machine="$(ansibleGetHost)"
+    declare publicDns="$(ansibleGetHost)"
 
     (
         cd ${pathAnsible}
 
         ansible-playbook -i hosts \
         --private-key=/tmp/tls_key.pem \
-        --extra-vars gitlab_external_url=http://${machine} \
+        --extra-vars gitlab_public_url=${publicDns} \
+        --extra-vars gitlab_external_url=https://${publicDns} \
         site.yml
     )
 }
 
 function terraformOutput {
-    terraform output
+    (
+        cd ${projects}/${projectName}
+
+        terraform output
+    )
 }
 
+function showInformations() {
+cat <<EOT
+ IP: $(ansibleGetHost ip)
+URL: https://$(ansibleGetHost)
+SSH: ssh ubuntu@$(ansibleGetHost) -i ${tls_key}
+EOT
+}
+
+function help() {
+cat <<EOT
+Opções disponíveis:
+-go                        Cria infraestrutura com Terraform, faz teste com Ansible para
+                           verificar se host está em funcionamento e roda Ansible playbook.
+-ar | --ansibleRunSite     Roda playbook do Ansible.
+-tc | --terraformCreate    Criar toda infraestrutura com Terraform.
+-to | --terraformOutput    Mostra informações geradas pelo Terraform.
+-td | --terraformDestroy   Destroy toda infraestrutuea com Terraform. Necessário confirmação.
+-rc | --recreate           Utiliza opções -td e -go
+-si | --showInformations   Mostra informações parseadas do Terraform
+EOT
+}
+
+# O primeiro parãmetro deve ser algum abaixo.
 case "$1" in
-    -go ) 
-    terraformCreateInfrastructure
+    -go )
+    bash $0 -tc $2
+    echo; echo "Espere um momento..."; sleep 10
 
     ansibleTestSite
+    bash $0 -ar $2    
+    ;;
+
+    -ar | --ansibleRunSite ) 
     ansibleRunSite
+    
+    bash $0 -si $2
     ;;
 
     -tc | --terraformCreate ) 
@@ -127,5 +183,18 @@ case "$1" in
 
     -td | --terraformDestroy )
     terraformDestroyInfrastructure
+    ;;
+
+    -rc | --recreate )
+    bash $0 -td $2
+    bash $0 -go $2
+    ;;
+
+    -si | --showInformations )
+    showInformations
+    ;;
+
+    -h | --help )
+    help
     ;;
 esac
