@@ -79,6 +79,14 @@ function terraformDestroyInfrastructure {
     )
 }
 
+function ansibleRequirements() {
+    (
+        cd ${pathAnsible}
+
+        ansible-galaxy install -r requirements.yml
+    )
+}
+
 function ansibleGetHost() {
     declare whatInformation="${1}"
     declare kindInformarion="${whatInformation:=aws_instance_public_dns}"
@@ -164,13 +172,18 @@ case "$1" in
     echo; echo "Espere um momento..."; sleep 10
 
     ansibleTestSite
-    bash $0 -ar $2    
+    bash $0 -ar $2
     ;;
 
     -ar | --ansibleRunSite ) 
+    bash $0 -ae $2
     ansibleRunSite
     
     bash $0 -si $2
+    ;;
+
+    -ae | --ansibleRequirements )
+    ansibleRequirements
     ;;
 
     -tc | --terraformCreate ) 
