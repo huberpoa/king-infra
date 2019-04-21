@@ -1,0 +1,38 @@
+pipeline {
+     agent any
+     environment {
+        DOCKER_IMAGE_NAME = 'image-app-test'
+        DOCKER_CONTAINER_NAME = 'container-app-test'
+     }
+
+     stages {
+          stage("Compile") {
+               steps {
+                    sh "echo Compile"
+               }
+          }
+          stage("Unit test") {
+               steps {
+                    sh "echo Teste"
+               }
+          }
+
+          stage("Package") {
+               steps {
+                    sh "cd aplication-files; unzip www.zip; cp -rf www ../docker-files"
+               }
+          }
+
+          stage("Docker build") {
+               steps {
+                    sh "cd docker-files; docker build --no-cache -t \${DOCKER_IMAGE_NAME} ."
+               }
+          }
+
+          stage("Deploy") {
+               steps {
+                     sh "docker stop \$(docker ps -q --filter name=\${DOCKER_CONTAINER_NAME}) >/dev/null 2>&1 || true; docker rm \$(docker ps -a -q --filter name=\${DOCKER_CONTAINER_NAME}) >/dev/null 2>&1 || true; cd docker-files; docker run -p 81:80 --name \${DOCKER_CONTAINER_NAME} -d \${DOCKER_IMAGE_NAME}"
+               }
+         }
+     }
+}

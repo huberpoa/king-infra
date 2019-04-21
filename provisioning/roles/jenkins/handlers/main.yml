@@ -1,0 +1,11 @@
+---
+- name: restart-jenkins
+  systemd:
+    name: jenkins
+    state: restarted
+  become: yes
+
+- name: wait-jenkins
+  wait_for: timeout=30
+  become: yes
+
