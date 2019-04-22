@@ -205,6 +205,16 @@ SSH: ssh ubuntu@$(ansibleGetHost) -i ${tls_key}
 EOT
 }
 
+# Verifica se o arquivo terraform.tfstate está presente no ambiente, pois pode falhar com alguns argumentos do script, como por exemplo a tentativa de rodar ansible sem mesmo ter uma infra mínima rodando
+function terraformPresence() {
+    if [ ! -f "${projects}/${projectName}/terraform.tfstate" ]; then
+        echo "Não existe uma infraestrutura mínima no momento"
+        echo "Rode o comando ${bold}${green}bash $0 -tc <nome do cliente>${reset} primeiro"
+
+        exit 1
+    fi
+}
+
 # Controle de credenciais da AWS
 # Falha em caso de não encontra o arquivo com credenciais ou se não conter a credencial correta para utilizar na AWS
 function awsCheckCredentials() {
@@ -231,7 +241,9 @@ case "$1" in
     bash $0 -ar $2
     ;;
 
-    -ar | --ansibleRunSite ) 
+    -ar | --ansibleRunSite )
+    terraformPresence
+
     bash $0 -ae $2
     ansibleRunSite
     
@@ -260,6 +272,7 @@ case "$1" in
     ;;
 
     -si | --showInformations )
+    terraformPresence
     showInformations
     ;;
 
