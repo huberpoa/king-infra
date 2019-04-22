@@ -2,9 +2,13 @@ upstream gitlab-workhorse {
     server unix:/var/opt/gitlab/gitlab-workhorse/socket;
 }
 
+upstream app {
+    server 127.0.0.1:9999;
+}
+
 server {
     listen 80;
-    server_name ec2-3-87-188-119.compute-1.amazonaws.com;
+    server_name {{ gitlab_public_url }};
 
     location ~ (.git/git-receive-pack$|.git/info/refs?service=git-receive-pack$|.git/gitlab-lfs/objects|.git/info/lfs/objects/batch$) {
         proxy_pass http://gitlab-workhorse;
@@ -12,7 +16,7 @@ server {
     }
 
     location / {
-        root /var/www/ec2-3-87-188-119.compute-1.amazonaws.com;
+        proxy_pass  http://app;
     }
 
     location /gitlab {
