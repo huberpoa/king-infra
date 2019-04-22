@@ -1,0 +1,93 @@
+---
+- name: Install Dependencies
+  yum:
+   name:
+    - wget
+    - java-1.8.0-openjdk
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2
+    - unzip
+    - git
+    - zip
+  become: yes
+
+- name: Download jenkins.repo
+  get_url:
+    url: http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo
+    dest: /etc/yum.repos.d/jenkins.repo
+  become: yes
+
+- name: Import Jenkins Key
+  rpm_key:
+    state: present
+    key: https://jenkins-ci.org/redhat/jenkins-ci.org.key
+  become: yes
+
+- name: Install Jenkins
+  yum:
+    name: jenkins
+    state: present
+  become: yes
+
+- name: Start & Enable Jenkins
+  systemd:
+    name: jenkins
+    state: started
+    enabled: true
+  become: yes
+  notify: 
+     - wait-jenkins
+
+- meta: flush_handlers
+
+- name: Disable Setup Wizard
+  copy: src=basic-security.groovy dest=/var/lib/jenkins/init.groovy.d/ owner=jenkins group=jenkins
+  become: yes
+  notify:
+     - restart-jenkins
+     - wait-jenkins
+
+- meta: flush_handlers
+
+- name: Change Security Strategy
+  xml:
+    path: /var/lib/jenkins/config.xml
+    xpath: /hudson/useSecurity
+    value: "false"
+  become: yes
+
+- name: Remove basic-security.groov
+  file:
+    state: "{{ item }}"
+    path: "/var/lib/jenkins/init.groovy.d/"
+  with_items:
+    - absent
+  become: yes
+  notify:
+     - restart-jenkins
+     - wait-jenkins
+
+- meta: flush_handlers
+
+- name: Download jenkins-api
+  get_url:
+    url: http://localhost:8080/jnlpJars/jenkins-cli.jar
+    dest: /tmp/jenkins-cli.jar
+  become: yes
+
+- name: Install Jenkins Plugins
+  shell: "java -jar /tmp/jenkins-cli.jar -s http://localhost:8080 install-plugin workflow-aggregator git -restart"
+  become: yes
+  notify:
+     - wait-jenkins
+
+- meta: flush_handlers
+
+- name: Copy Job Seed
+  template: src=job-seed.xml dest=/tmp/
+  become: yes
+
+- name: Create job
+  shell: "java -jar /tmp/jenkins-cli.jar -s http://localhost:8080 create-job push-deploy < /tmp/job-seed.xml"
+  become: yes

@@ -1,0 +1,40 @@
+---
+- name: Download Docker.repo
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+  become: yes
+
+- name: Enable RHEL extras repository
+  shell: yum-config-manager --enable rhel-7-server-extras-rpms
+  become: yes
+
+- name: Enable AWS RHEL extras repository
+  shell: yum-config-manager --enable rhui-REGION-rhel-server-extras
+  become: yes
+
+- name: Install Docker CE
+  yum:
+    name: docker-ce
+    state: present
+  become: yes
+
+- name: Start & Enable Docker
+  systemd:
+    name: docker
+    state: started
+    enabled: true
+  become: yes
+
+- name: Add user jenkins into docker group
+  user:
+    name: jenkins
+    shell: /bin/bash
+    groups: docker
+    append: yes
+  become: yes
+  notify:
+     - restart-jenkins
+     - wait-jenkins
+
+- meta: flush_handlers

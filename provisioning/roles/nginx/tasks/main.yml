@@ -1,0 +1,43 @@
+---
+- name: Add Nginx Repository
+  yum_repository:
+    name: nginx-repo
+    description: Nginx repository
+    baseurl: http://nginx.org/packages/rhel/7/$basearch/
+    gpgcheck: no
+    enabled: yes
+  become: yes
+  
+- name: Install Nginx
+  yum:
+   name:
+    - nginx
+  become: yes
+
+- name: Remove nginx default config
+  command: "mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.bkp"
+  become: yes
+
+- name: Copy nginx config
+  copy: src=nginx-conf.conf dest=/etc/nginx/conf.d/
+  become: yes
+
+- name: Creates nginx certs folder
+  file:
+    path: /usr/local/nginx/ssl
+    state: directory
+  become: yes
+
+- name: Copy nginx certs
+  copy: src="{{ item }}" dest=/usr/local/nginx/ssl
+  with_items:
+    - cert.crt
+    - cert.key
+  become: yes
+
+- name: Start & Enable Nginx
+  systemd:
+    name: nginx
+    state: started
+    enabled: true
+  become: yes
