@@ -1,0 +1,49 @@
+
+- hosts: gitlab
+  tasks:
+  - name: Atualiza e instala as dependencias 
+    apt:
+      name: "{{ packages }}"
+      state: latest
+    vars:
+      packages:
+      - curl
+      - openssh-server
+      - ca-certificates
+      update_cache: yes
+
+  - name: Adiciono os repo para instalar o Gitlab
+    shell: curl -sS https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh | sudo bash
+    args:
+      warn: False
+
+  - name: Instala o Gitlab
+    shell: sudo EXTERNAL_URL="http://IP-INTERNO-DA-VM" sudo apt-get install -y gitlab-ce && sudo sed 's/gitlab.example.com/IP-INTERNO-DA-VM/g' /etc/gitlab/gitlab.rb
+    args:
+      warn: False
+
+  - name: Reconfigura o Gitlab
+    shell: sudo gitlab-ctl reconfigure
+    args:
+      warn: False
+
+- hosts: docker
+  tasks:
+  - name: Instala o Docker
+    shell: sudo apt-get -y update && sudo apt-get install -y docker.io
+    args:
+      warn: False
+  - name: Start no Docker 
+    shell: sudo systemctl start docker && sudo systemctl enable docker
+    args:
+      warn: False
+  - name: Adiciono os repo para instalar o Gitlab Runner 
+    shell: curl -sS https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh | sudo bash 
+    args:
+      warn: False
+
+  - name: Instala o Gitlab Runner 
+    shell: sudo apt-get install -y gitlab-runner
+    args:
+      warn: False
+ 
