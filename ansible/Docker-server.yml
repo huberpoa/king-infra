@@ -1,0 +1,20 @@
+
+- hosts: docker
+  tasks:
+  - name: Start do Gitlab-runner  
+    shell: sudo gitlab-runner register \
+            --non-interactive \
+            --url "http://IP-INTERNO-DA-VM-GITLAB/ " \
+            --registration-token "SuZTsLu2qnsoFyd6Ysiy" \
+            --executor "docker" \
+            --docker-image ubuntu \
+            --description "docker-runner" \
+            --tag-list "docker" \
+            --run-untagged="true" \
+            --locked="false" \
+    args:
+      warn: False
+
+
+
+

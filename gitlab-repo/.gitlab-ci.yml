@@ -1,0 +1,36 @@
+image: ubuntu
+
+build site:
+  stage: build
+
+  script:
+    - apt-get update -y
+    - apt-get install nginx -y
+    - service nginx start
+    - apt-get install php-fpm -y
+    - service php7.2-fpm start
+    - mkdir /var/www/app
+    - cp ./index.php /var/www/app/
+    - ls -lhs 
+    - rm -rf /etc/nginx/sites-available/default
+    - touch /etc/nginx/sites-available/default && cat ./Site.conf > /etc/nginx/sites-available/default
+    - service nginx restart
+
+deploy site:
+  stage: deploy
+  script:
+    - apt-get update -y
+    - apt-get install nginx -y
+    - service nginx start
+    - apt-get install php-fpm -y
+    - service php7.2-fpm start
+    - mkdir /var/www/app
+    - cp ./index.php /var/www/app/
+    - ls -lhs 
+    - rm -rf /etc/nginx/sites-available/default
+    - touch /etc/nginx/sites-available/default && cat ./Site.conf > /etc/nginx/sites-available/default
+    - service nginx restart
+
+ 
+
+
