@@ -205,6 +205,8 @@ SSH: ssh ubuntu@$(ansibleGetHost) -i ${tls_key}
 EOT
 }
 
+# Controle de credenciais da AWS
+# Falha em caso de não encontra o arquivo com credenciais ou se não conter a credencial correta para utilizar na AWS
 function awsCheckCredentials() {
     cat ${AWSCredentials} | grep "${projectName}"
 
