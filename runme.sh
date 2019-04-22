@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
+# Rafael Dutra <raffaeldutra@gmail.com>
 
+set -o errexit   # paramos o script em caso de problemas
+set -o pipefail  # falhamos em caso de uma saída de comando conter erros
 
 function help() {
 cat <<EOT
@@ -32,6 +35,10 @@ if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
     exit 1
 fi
 
+# AWS credentials
+declare pathAWS="${HOME}/.aws"
+declare AWSCredentials="${pathAWS}/credentials"
+
 # Terraform Variable
 declare pathTerraform="terraform"
 declare projects=${pathTerraform}/aws/clients
@@ -44,7 +51,8 @@ function listProjects() {
     ls -1 ${projects}
 }
 
-# Inputs de variáveis
+# Faz teste de argumentos passados pela linha de comando
+# Em caso do primeiro parâmetro for igual a -h ou -cn, não é necessário o nome do cliente
 if [ -z "${2}" ] && [ "${1}" != "-h" ] && [ "${1}" != "-cn" ]; then
     echo "Utilização: bash $0 [OPÇÃO] [NOME DO CLIENTE]"
 
@@ -100,6 +108,7 @@ function terraformDestroyInfrastructure {
     )
 }
 
+# Roda o comando do Galaxy para Ansible automaticamente
 function ansibleRequirements() {
     (
         cd ${pathAnsible}
@@ -108,6 +117,8 @@ function ansibleRequirements() {
     )
 }
 
+# Retorna informações gerada a partir do terraform output
+# Por default retorna a informação de DNS pública da AWS
 function ansibleGetHost() {
     declare whatInformation="${1}"
     declare kindInformarion="${whatInformation:=aws_instance_public_dns}"
@@ -124,6 +135,10 @@ function ansibleGetHost() {
 
 }
 
+# Gera em tempo real o arquivo de configuração de hosts para o Ansible
+# Uma vez gerada o arquivo, será feito um teste de ping neste host, caso
+# O ping retorne falso, espera mais alguns segundos para tentar novamente
+# em caso de 3 falhas consecutivas, o processo do Ansible é parado 
 function ansibleTestSite() {
 cat <<EOT > ${pathAnsible}/hosts
 [king-infra]
@@ -133,15 +148,31 @@ $(ansibleGetHost)
 ansible_python_interpreter=/usr/bin/python3
 EOT
 
-    (
-        cd ${pathAnsible}
+    declare try=1
+    while [ $try -ne 3 ]
+    do
+        (
+            cd ${pathAnsible}
 
-        ansible -i hosts \
-        -m ping king-infra \
-        --private-key=${tls_key}
-    )
+            ansible -i hosts \
+            -m ping king-infra \
+            --private-key=${tls_key}
+        )
+
+        if [ $? -eq 0 ]; then
+            try=3
+        elif [ $try -eq 3 ]; then
+           echo "Não foi possível realizar o ping no host $(ansibleGetHost), saindo..."
+           
+           exit 1
+        else
+            try=$[$try+1]
+        fi
+    done
 }
 
+# Roda o playbook definido no site.yml
+# O papel principal dessa função é passar argumentos para o Ansible, pois dela que todo provisionamento é realizado
 function ansibleRunSite() {
     declare publicDns="$(ansibleGetHost)"
 
@@ -156,6 +187,7 @@ function ansibleRunSite() {
     )
 }
 
+# Retorna o output do terraform
 function terraformOutput {
     (
         cd ${projects}/${projectName}
@@ -164,6 +196,7 @@ function terraformOutput {
     )
 }
 
+# Mostra informações finais no terminal
 function showInformations() {
 cat <<EOT
  IP: $(ansibleGetHost ip)
@@ -172,11 +205,25 @@ SSH: ssh ubuntu@$(ansibleGetHost) -i ${tls_key}
 EOT
 }
 
+function awsCheckCredentials() {
+    cat ${AWSCredentials} | grep "${projectName}"
+
+    echo $? && credentialsFound=0 || credentialsFound=1
+
+    if [ ! -f "${AWSCredentials}" ] || [ ${credentialsFound} -ne 0 ]; then
+        echo "Arquivo ${AWSCredentials} não encontrado ou credencial não encontrada, saindo..."
+
+        exit 1
+    fi
+}
+
 # O primeiro parãmetro deve ser algum abaixo.
 case "$1" in
     -go )
+    awsCheckCredentials
     bash $0 -tc $2
-    echo; echo "Espere um momento..."; sleep 10
+    echo; echo "Espere um momento..."
+    sleep 10
 
     ansibleTestSite
     bash $0 -ar $2
