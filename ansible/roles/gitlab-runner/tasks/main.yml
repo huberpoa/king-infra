@@ -1,0 +1,76 @@
+---
+- name: create a login user
+  user:
+    name: gitlab-runner
+    groups: 
+      - docker
+      - sudo
+    state: present
+    shell: /bin/bash
+    system: no
+    createhome: yes
+    home: /home/gitlab-runner 
+
+- name: check if Gitlab Runner exists
+  stat:
+    path: /home/gitlab-runner/gitlab-runner
+  register: gitlab_runner_file
+
+- name: check if Gitlab Runner service exists
+  stat:
+    path: /etc/systemd/system/gitlab-runner.service
+  register: gitlab_runner_service
+
+- name: download GitLab repository installation script.
+  get_url:
+    url: "https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64"
+    dest: /home/gitlab-runner/gitlab-runner
+    owner: gitlab-runner
+    group: gitlab-runner
+    mode: 0755
+  when: not gitlab_runner_file.stat.exists
+
+- name: running Gitlab Runner installation
+  shell: |
+    /home/gitlab-runner/gitlab-runner install --user=gitlab-runner \
+    --working-directory=/home/gitlab-runner
+  when: not gitlab_runner_service.stat.exists
+
+- name: create /etc/gitlab-runner/certs directory
+  file:
+    path: /etc/gitlab-runner/certs
+    mode: 0755
+    owner: root
+    group: root
+    state: directory
+
+- name: configuring SSL
+  shell: |
+    openssl s_client \
+    -showcerts \
+    -servername {{ gitlab_public_url }} -connect {{ gitlab_public_url }}:443 </dev/null 2>/dev/null | \
+    sed -e '/-----BEGIN/,/-----END/!d' | \
+    tee "/etc/gitlab-runner/certs/{{ gitlab_public_url }}.crt" >/dev/null
+
+- name: check for previous register
+  stat:
+    path: /etc/gitlab-runner/config.toml
+  register: gitlab_runner_register
+
+- name:  getting token for registration
+  command: >
+    gitlab-rails runner -e production "puts Gitlab::CurrentSettings.current_application_settings.runners_registration_token"
+  register: runner_token
+
+- name: configuring runner
+  shell: |
+    /home/gitlab-runner/gitlab-runner register --non-interactive \
+    --url https://{{ gitlab_public_url }}/gitlab \
+    --registration-token {{ runner_token.stdout }} \
+    --executor 'docker' \
+    --name 'docker-runner' \
+    --locked \
+    --limit 3 \
+    --docker-privileged \
+    --docker-image 'docker:latest'
+  # when: not gitlab_runner_register.stat.exists

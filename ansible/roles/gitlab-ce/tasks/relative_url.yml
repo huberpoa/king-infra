@@ -1,0 +1,22 @@
+---
+- name: copy files for relative urls
+  template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - { src: 'etc/default/gitlab', dest: '/etc/default/gitlab' }
+    - { src: 'gitlab-rails/etc/gitlab.yml.j2', dest: '/var/opt/gitlab/gitlab-rails/etc/gitlab.yml' }
+    - { src: 'gitlab-rails/etc/relative_url.rb.j2', dest: '/var/opt/gitlab/gitlab-rails/etc/relative_url.rb' }
+    - { src: 'gitlab-rails/etc/unicorn.rb.j2', dest: '/var/opt/gitlab/gitlab-rails/etc/unicorn.rb' }
+    - { src: 'gitlab/gitlab-shell/config.yml.j2', dest: '/var/opt/gitlab/gitlab-shell/config.yml' }
+
+- name: reconfiguring GitLab
+  shell: |
+    gitlab-ctl stop
+    gitlab-ctl reconfigure
+    gitlab-ctl start
+    gitlab-ctl stop nginx
+  failed_when: false

@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - include: tasks/common.yml
+    - include: tasks/app.yml
+
+- hosts: king-infra
+  become: yes
+  roles:
+    - raffaeldutra.ansible_docker_role
+    - nginx
+    - gitlab-ce
+    - gitlab-runner

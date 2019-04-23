@@ -1,76 +1,73 @@
 # Divertindo-se com Infra as Code - Desafio Prático
 
-## O que é?
+## Pré requisitos
+Ter `Ansible` instalado na máquina, caso não tenha, podemos utilizar diretamente de um container [https://github.com/raffaeldutra/docker-ansible](https://github.com/raffaeldutra/docker-ansible).
 
-Este projeto faz parte do processo seletivo para o cargo de Analista de Infraestrutura Ágil da KingHost. :)
+## Objetivo do projeto
+Utilizar infraestrura como código de uma maneira simplificada onde tudo é basicamente controlado via script e automatizado por ele.
 
-Este desafio foi projetado a fim de medir seu nível de conhecimento com tecnologias DevOps e players de cloud pública, e suas capacidades de propor novas ideias e arquiteturas para nossos serviços, sempre com o foco de manter os ambientes seguros.
+A infraestrutura fica hospedada na AWS sendo facilmente possível reconstruir toda o ambiente do zero.
 
-## Introdução
+Pensando em trazer o máximo de automação possível dentro do contexto que foi solicitado, segui na linha onde o meu endpoint (public dns) da AWS seria o ponto de entrada para toda a configuração com Ansible.
 
-Um de nossos projetos internos necessita de um novo ambiente que permita desenvolvimento e deploy de forma automatizada e contínua. Para isto, você, no papel de Analista de Infraestrutura Ágil, foi chamado para elaborar uma infraestrutura a fim de atender a esta demanda dos times de desenvolvimento.
+Ao final, cada ferramenta foi escolhida principalmente pelos seguintes motivos:
 
-Para isto, foram estipuladas algumas necessidades, as quais devem ser atendidas:
+* Simplicidade
+* Menor dependência possível, como agentes (Puppet) ou instalação de ferramentas adicionais (Ruby/Java).
+* Documentação
 
-* A infraestrutura deverá ser provisionada na AWS ou GCP usando ferramenta de gerenciamento de infraestrutura como código, sem utilização de ferramentas próprias desses players (crie uma conta gratuita para prosseguir);
-* Deverá ser instalada e configurada uma ferramenta de CI/CD de sua preferência usando ferramentas de automação de IT;
-* Deverá ser criado um pipeline de push deploy dentro da ferramenta de CI/CD, a qual será responsável por reconstruir a imagem em caso de alterações em seus requisitos e publicá-la no servidor de produção, e;
-* **(Extra)** Toda arquitetura deverá ser disponibilizada através da execução de um simples shell script.
+## Soluções adotadas
+### Cloud Provider (AWS)
+Utilizado AWS devido a praticidade de utilizar recursos com Terraform e pelo maior contato que tenho com ela e o tempo para realizar o teste.
 
-A principal ideia aqui é que você **faça por você mesmo (DIY)**.
-	
-## Requisitos técnicos
+### Infraestrutura como código (Terraform)
+Terraform é a escolha principal para trazer uma infraestrutura do zero e o maior motivo de utilizar esta ferramenta é a facilidade de consumir recursos de Cloud Providers, como AWS.
 
-Para realização deste desafio, deverão ser observados os seguintes requisitos:
+### Gerenciamento de configuração (Ansible)
+Praticamente qualquer OS Linux vem com Python instalado e a única coisa que precisamos fazer é configurar o host e chaves.
 
-* A aplicação deverá ser hospedada em ambiente conteinerizado, com os seguintes requisitos:
-	* A imagem deve partir de um sistema operacional limpo (Ubuntu ou Alpine), sem adicionais instalados;
-	* Nessa imagem, deverá executar um web server + PHP-FPM, e a aplicação deverá ser hospedada em /home/app;
-* A máquina onde rodará a aplicação deverá conter um web server Nginx, o qual se comunicará com o container via proxy, e deverá escutar nas portas 80 e 443;
-* A infraestrutura proposta deverá contemplar a possibilidade de utilização por múltiplos projetos, e;
-* Obviamente, todo o código da infraestrutura deve estar versionado. :)
-	
-As configurações devem, sempre, prezar pelas boas práticas de segurança, com principal atenção aos seguintes pontos:
+A grande decisão de utilizar Ansible ou não é pela fácil implementação que ela proporciona, basta SSH e Python e você irá fazer automação de processos/tarefas.
 
-* O acesso aos servidores deverá ser possível apenas utilizando chave SSH;
-* O repositório não deverá contar com nenhum arquivo que possua dados sensíveis **(caráter eliminatório)**;
-* Priorizar sempre o acesso HTTPS (o certificado poderá ser auto-assinado para fins do desafio).
+Para instalar Docker com Ansible, eu utilizei uma `role` desenvolvida por mim que pode ser encontrada em [https://galaxy.ansible.com/raffaeldutra/ansible_docker_role](https://galaxy.ansible.com/raffaeldutra/ansible_docker_role)
 
-Documentação é primordial! Então, priorize os comentários em seu código sempre que possível. :)
+### Serviço Web (Nginx)
+Nginx tem inúmeras funcionalidades, como proxy reverso para email, balanceador de carga para http, tcp,udp e baixo consumo de memória ram. Também uma sintaxe mais simples ao meu ver que Apache.
 
-## Por onde começar?
+### Integração e entrega contínua (Gitlab CI/CD)
+Gitlab é uma ferramenta completa para pipelines de software e automação de processos e respositório de código.
 
-Para ajudá-lo em sua jornada, abaixo tem algumas fontes de documentação que você poderá utilizar, caso não saibas por onde iniciar.
+Para utilizar Gitlab neste desafio, tive que alterar a url que o Gitlab atendia, pois por padrão ele não é feito para ser acessado via caminhos relativos, portanto realizei o seguinte procedimento abaixo e automatizei o processo com Ansible.
+[https://docs.gitlab.com/ee/install/relative_url.html](https://docs.gitlab.com/ee/install/relative_url.html)
 
-* https://github.com/terraform-providers
-* https://github.com/ansible/ansible-examples
-* https://hub.docker.com/
+## Registro para containers (Docker Hub)
+Para construir e publicar a imagem da aplicação, foi utilizado `Docker Hub`, por dois motivos:
 
-Você tem alguma dúvida? Você pode enviar um e-mail para alessandro.santos@kinghost.com.br a qualquer momento, que iremos o mais breve possível retorná-lo. ;)
-	
-## Entregáveis
+* Imagem da aplicação era genérica e não há nenhum dado sensível.
+* Para utilizar o registro interno do Gitlab eu prefiro sempre certificados válidos, como a AWS é proibida de ter seu domínio utilizada com Lets Encrypt, preferi seguir a solução adequada neste caso, utilizar certificados válidos sem nenhum custo adicional (como um domínio, por exemplo).
 
-Ao final do desafio, você deverá realizar um "pull request" neste repositório, o qual deverá conter o seguinte conteúdo:
+## Como fazer o deploy da infraestrutura
 
-* Todo e qualquer arquivo necessário para que possamos reproduzir a infra criada em nossas contas nos players supracitados, e;
-* Arquivo README.md, contendo:
-	* Instruções de como executar a infraestrutura entregue;
-	* Ferramentas utilizadas, e o por que estas foram escolhidas para a realização do desafio, e;
-	* Decisões adotadas durante o planejamento e execução do desafio, justificando-as.
+Todo o deploy se encontra no script `runme.sh`.
 
-**IMPORTANTE: Mesmo que você não consiga concluir o desafio por completo, envie o que você conseguiu fazer!** Iremos avaliar todo e qualquer desenvolvimento que você nos apresentar! O mais importante deste desafio é, que ao final dele, você adquira novos conhecimentos ou aprimore os que você já possui. ;)
+### Como utilizar o script
 
-Após, envie e-mail para o e-mail nicole.santos@kinghost.com.br, com cópia para alessandro.santos@kinghost.com.br e douglas@kinghost.com.br, com o assunto **"Desafio Prático Infraestrutura Ágil"**, sinalizando a entrega do desafio para avaliação.
+Este script necessita dois parâmetros.
+* Ação
+* Nome do cliente
 
-## Prazo para conclusão
+* Ação é o que desejamos fazer, como:
+  * Construir toda infraestrutura.
+  * Deletar toda infraestrutra, porém esta opção requer confirmação.
+  * Rodar playbook para o cliente/projeto.
+  * Mostrar informações de endpoints, como SSH e acesso ao Gitlab e aplicação.
 
-Está informado no e-mail enviado junto com o endereço deste desafio.
+* Nome do cliente
+  * A estrutura de diretórios com Terraform foi justamente pensada para ser fácil o reuso para outros projetos.
+  * Cada diretório contêm sua infraestrutura necessária para execução.
 
-## O que será avaliado?
+Para executar o script, digite no terminal `bash runme.sh` e verifique a saída. A saída é bem explicativa com uma ajuda de quais funcionalidades podemos realizar.
 
-* Flexibilidade
-* Maneira como você está entregando este desafio
-* Capacidade de tomada de decisões técnicas
-* Complexidade
-	
-**Good luck and having fun! ;)**
+Sintaxe básica de Utilização: `bash runme.sh [OPÇÃO] [NOME DO CLIENTE]`
+
+### Como conectar no servidor com SSH
+Durante o processo de criação da infraestrutura na AWS com Terraform foram criadas as chaves de acesso ao servidor, elas estão em `/tmp/tls_key.pem` em sua máquina.

@@ -1,0 +1,49 @@
+# Rafael Dutra <raffaeldutra@gmail.com>
+
+services:
+  - docker:dind
+
+image: docker:latest
+
+stages:
+- build
+- publish
+- deploy
+
+variables:
+  IMAGE_NAME: raffaeldutra/king-infra
+  IMAGE_PORT: 9999
+  CONTAINER_NAME: raffaeldutra-king-infra
+  CONTAINER_PORT: 8080
+  SRC_DEPLOY_APP: /home/app 
+  DEST_DEPLOY_APP: /var/www/app
+
+build:
+  stage: build
+  script:
+    - docker build --rm -t ${IMAGE_NAME} .
+    - docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:latest
+    - docker image ls
+  only:
+    - develop
+
+publish:
+  stage: publish
+  script:
+    - docker login -u ${HUB_LOGIN} -p ${HUB_PASSWORD}
+    - docker image push ${IMAGE_NAME}:latest
+  only:
+    - develop
+
+deploy:
+  stage: deploy
+  script:
+    - docker image pull ${IMAGE_NAME}
+    - docker container rm -f ${CONTAINER_NAME}
+    - |
+      docker container run -d \
+      -v ${SRC_DEPLOY_APP}:${DEST_DEPLOY_APP} \
+      -p ${CONTAINER_PORT}:${IMAGE_PORT} \
+      --name ${CONTAINER_NAME} ${IMAGE_NAME}
+  only:
+    - develop

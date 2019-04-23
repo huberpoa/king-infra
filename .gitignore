@@ -1,0 +1,5 @@
+ansible/hosts
+.terraform/
+*.retry
+*.tfstate
+*.tfstate.backup
