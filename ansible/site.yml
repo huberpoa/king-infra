@@ -9,6 +9,6 @@
   become: yes
   roles:
     - raffaeldutra.ansible_docker_role
+    - nginx
     - gitlab-ce
     - gitlab-runner
-    - nginx
