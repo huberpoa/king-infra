@@ -182,7 +182,7 @@ function ansibleRunSite() {
         ansible-playbook -i hosts \
         --private-key=/tmp/tls_key.pem \
         --extra-vars gitlab_public_url=${publicDns} \
-        --extra-vars gitlab_external_url=https://${publicDns} \
+        --extra-vars gitlab_external_url=http://${publicDns} \
         site.yml
     )
 }
@@ -200,7 +200,7 @@ function terraformOutput {
 function showInformations() {
 cat <<EOT
  IP: $(ansibleGetHost ip)
-URL: https://$(ansibleGetHost)
+URL: http://$(ansibleGetHost)
 SSH: ssh ubuntu@$(ansibleGetHost) -i ${tls_key}
 EOT
 }
@@ -218,20 +218,35 @@ function terraformPresence() {
 # Controle de credenciais da AWS
 # Falha em caso de não encontra o arquivo com credenciais ou se não conter a credencial correta para utilizar na AWS
 function awsCheckCredentials() {
-    cat ${AWSCredentials} | grep "${projectName}"
+    cat ${AWSCredentials} | grep "${projectName}" >/dev/null
 
-    echo $? && credentialsFound=0 || credentialsFound=1
+    echo $? >/dev/null && credentialsFound=0 || credentialsFound=1
 
     if [ ! -f "${AWSCredentials}" ] || [ ${credentialsFound} -ne 0 ]; then
-        echo "Arquivo ${AWSCredentials} não encontrado ou credencial não encontrada, saindo..."
+        echo "Arquivo ${AWSCredentials} ou credencial não encontrada, saindo..."
 
         exit 1
     fi
 }
 
+# Checa se Ansible e Terraform estão presentes no sistema
+# Caso não esteja, sai do script
+function checkTooling() {
+    for tool in terraform ansible; do
+        which ${tool} > /dev/null
+
+        if [ $? -ne 0 ]; then
+            echo "A ferramenta ${tool} não foi encontrada, saindo.."
+
+            exit 1
+        fi
+    done
+}
+
 # O primeiro parãmetro deve ser algum abaixo.
 case "$1" in
     -go )
+    checkTooling
     awsCheckCredentials
     bash $0 -tc $2
     echo; echo "Espere um momento..."
@@ -242,6 +257,7 @@ case "$1" in
     ;;
 
     -ar | --ansibleRunSite )
+    checkTooling
     terraformPresence
 
     bash $0 -ae $2
