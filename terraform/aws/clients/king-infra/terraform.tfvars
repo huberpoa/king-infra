@@ -1,4 +1,4 @@
-instance_type = "t2.small"
+instance_type = "t2.medium"
 region        = "us-east-1"
 environment   = "production"
 client_name   = "king-infra"
