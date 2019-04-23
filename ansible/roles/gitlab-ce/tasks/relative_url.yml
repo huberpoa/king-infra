@@ -12,4 +12,11 @@
     - { src: 'gitlab-rails/etc/relative_url.rb.j2', dest: '/var/opt/gitlab/gitlab-rails/etc/relative_url.rb' }
     - { src: 'gitlab-rails/etc/unicorn.rb.j2', dest: '/var/opt/gitlab/gitlab-rails/etc/unicorn.rb' }
     - { src: 'gitlab/gitlab-shell/config.yml.j2', dest: '/var/opt/gitlab/gitlab-shell/config.yml' }
-  notify: restart gitlab
+
+- name: reconfiguring GitLab
+  shell: |
+    gitlab-ctl stop
+    gitlab-ctl reconfigure
+    gitlab-ctl start
+    gitlab-ctl stop nginx
+  failed_when: false
