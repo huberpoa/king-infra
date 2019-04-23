@@ -1,0 +1,17 @@
+---
+- name: create app directory
+  file:
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+    path: /home/app
+
+- name: Artifact synchronization
+  synchronize:
+    src: ../app
+    dest: /home/app
+    archive: yes
+    delete: yes
+    owner: no # don't preserve owner
+    group: no
