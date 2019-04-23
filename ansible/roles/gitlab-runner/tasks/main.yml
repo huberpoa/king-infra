@@ -46,10 +46,9 @@
 
 - name: configuring SSL
   shell: |
-    openssl s_client -connect {{ gitlab_public_url }}:443 \
-    -showcerts </dev/null 2>/dev/null | \
+    openssl s_client -showcerts -servername {{ gitlab_public_url }} -connect {{ gitlab_public_url }}:443 </dev/null 2>/dev/null | \
     sed -e '/-----BEGIN/,/-----END/!d' | \
-    sudo tee "/etc/gitlab-runner/certs/{{ gitlab_public_url }}.crt" >/dev/null
+    tee "/etc/gitlab-runner/certs/{{ gitlab_public_url }}.crt" >/dev/null
 
 - name: check for previous register
   stat:
@@ -64,7 +63,7 @@
 - name: configuring runner
   shell: |
     /home/gitlab-runner/gitlab-runner register --non-interactive \
-    --url "{{ gitlab_external_url }}" \
+    --url https://{{ gitlab_public_url }}/gitlab \
     --registration-token {{ runner_token.stdout }} \
     --executor 'docker' \
     --name 'docker-runner' \
