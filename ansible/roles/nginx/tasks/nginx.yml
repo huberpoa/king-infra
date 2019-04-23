@@ -16,14 +16,16 @@
     name: nginx
     state: present
     update_cache: yes
+  notify: start nginx
 
 - name: copying app site
   template:
     src: templates/nginx.conf.j2
     dest: /etc/nginx/nginx.conf
+  notify: test nginx and restart
 
 - name: copying app site
   template:
-    src: templates/app.conf.j2
-    dest: /etc/nginx/conf.d/app.conf
+    src: templates/apps.conf.j2
+    dest: /etc/nginx/conf.d/apps.conf
   notify: test nginx and restart
