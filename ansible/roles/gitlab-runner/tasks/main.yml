@@ -46,7 +46,9 @@
 
 - name: configuring SSL
   shell: |
-    openssl s_client -showcerts -servername {{ gitlab_public_url }} -connect {{ gitlab_public_url }}:443 </dev/null 2>/dev/null | \
+    openssl s_client \
+    -showcerts \
+    -servername {{ gitlab_public_url }} -connect {{ gitlab_public_url }}:443 </dev/null 2>/dev/null | \
     sed -e '/-----BEGIN/,/-----END/!d' | \
     tee "/etc/gitlab-runner/certs/{{ gitlab_public_url }}.crt" >/dev/null
 
