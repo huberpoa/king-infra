@@ -3,4 +3,3 @@ ansible/hosts
 *.retry
 *.tfstate
 *.tfstate.backup
-app
