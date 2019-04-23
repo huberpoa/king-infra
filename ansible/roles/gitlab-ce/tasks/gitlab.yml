@@ -55,9 +55,3 @@
     owner: root
     group: root
     mode: 0600
-
-- name: reconfiguring GitLab
-  command: >
-    gitlab-ctl reconfigure
-    creates=/var/opt/gitlab/bootstrapped
-  failed_when: false
