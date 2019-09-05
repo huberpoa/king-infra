@@ -5,7 +5,8 @@ provider "google" {
 }
 
 resource "google_compute_instance" "vm_instance" {
-    count = 1
+    count = 2
+
     name = "${var.names}-${count.index + 1}"
     machine_type = "${var.machine}"
     zone = "${var.region}-a"
@@ -26,16 +27,14 @@ resource "google_compute_instance" "vm_instance" {
     }
 
     provisioner "local-exec" {
-        command = "echo ${google_compute_instance.vm_instance[count.index].network_interface.access_config.0.nat_ip} >> host"
+        command = "echo ${self.name}  ${self.network_interface.0.access_config.0.nat_ip} >> host"
     }
 }
 
 output "private_ip" {
-  value = "${google_compute_instance.vm_instance.*.network_interface.0.address}"
+  value = "${google_compute_instance.vm_instance.*.network_interface.0.network_ip}"
 }
 
 output "public_ip" {
   value = "${google_compute_instance.vm_instance.*.network_interface.0.access_config.0.nat_ip}"
 }
-
-
