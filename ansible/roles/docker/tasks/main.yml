@@ -1,0 +1,50 @@
+---
+- name: Yum Update
+  become: true
+  yum:
+    name: '*'
+    state: latest
+
+- name: Install yum-utils, device-mapper and lvm2
+  become: true
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2
+
+- name: Add Docker repo
+  become: true
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+
+- name: Enable Docker repo
+  become: true
+  ini_file:
+    dest: /etc/yum.repos.d/docker-ce.repo
+    section: 'docker-ce-edge'
+    option: enable
+    value: 0
+    
+- name: Install Docker
+  become: true
+  yum:
+    name: 
+    - python
+    - python-pip
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+
+- name: Start Docker
+  become: true
+  systemd:
+    state: started
+    name: docker
+
+- name: Add user to group docker
+  become: true
+  shell: usermod -aG docker "{{ USER }}"
