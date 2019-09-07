@@ -21,3 +21,8 @@ variable "image" {
 variable "user" {}
 
 variable "pub-key" {}
+
+variable "name-fw" {
+    default = "fw"
+}
+
