@@ -1,0 +1,16 @@
+---
+- name: Start Container GitLab
+  docker_container:
+    name: gitlab
+    image: "gitlab/gitlab-ce:latest"
+    network_mode: host
+    state: started
+    restart_policy: "on-failure"
+    ports:
+      - "80:80"
+      - "443:443"
+ 
+    volumes:
+      - "/srv/gitlab/config:/etc/gitlab"
+      - "/srv/gitlab/logs:/var/log/gitlab"
+      - "/srv/gitlab/data:/var/opt/gitlab"
