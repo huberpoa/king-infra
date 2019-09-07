@@ -39,6 +39,12 @@
     - docker-ce-cli
     - containerd.io
 
+- name: Install Docker-py
+  become: true
+  pip:
+    name: docker-py
+    state: latest
+
 - name: Start Docker
   become: true
   systemd:
