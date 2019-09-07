@@ -4,6 +4,16 @@ provider "google" {
     project = "${var.name-project}"
 }
 
+resource "google_compute_firewall" "default" {
+    name = "${var.name-fw}"
+    network = "default"
+
+    allow {
+        protocol = "tcp"
+        ports = ["22", "80", "443"]
+    }
+}
+
 resource "google_compute_instance" "vm_instance" {
     count = 2
 
