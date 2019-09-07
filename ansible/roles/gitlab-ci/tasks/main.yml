@@ -1,0 +1,38 @@
+--- 
+- name: Add Repository GitLab
+  become: true
+  shell: curl -L https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.rpm.sh | sudo bash
+
+- name: Install GitLab Runner
+  become: true
+  yum:
+    name: gitlab-runner
+
+- name: Install Module pyapi-gitlab
+  become: true
+  pip:
+    name: pyapi-gitlab
+    state: latest
+
+
+- name: Create Repository In GitLab
+  gitlab_project:
+     server_url: "{{ DOMAIN_GITLAB }}"
+     login_token: "{{ TOKEN_API_GITLAB }}"
+     name: king-infra
+     group: infra
+     state: present
+
+- name: Register Runner GitLab
+  become: true
+  gitlab_runner:
+    validate_certs: false
+    url: "{{ DOMAIN_GITLAB }}"
+    api_token: "{{ TOKEN_API_GITLAB }}"
+    registration_token: "{{ TOKEN_REGISTER_RUNER }}"
+    description: My CI
+    state: present
+    active: True
+    tag_list: ['docker']
+    run_untagged: False
+    locked: False
