@@ -38,6 +38,7 @@
     - docker-ce
     - docker-ce-cli
     - containerd.io
+    - git
 
 - name: Install Docker-py
   become: true
@@ -50,6 +51,7 @@
   systemd:
     state: started
     name: docker
+    enabled: yes
 
 - name: Add user to group docker
   become: true
