@@ -10,16 +10,19 @@
     name:
     - epel-release
     - nginx
+    - certbot
 
 - name: Copy nginx.conf to root directory
+  become: true
   template:
     src: ./templates/nginx-conf.j2
     dest: /etc/nginx/nginx.conf
 
-- name: Copy conf app to conf.d
+- name: Copy first conf to conf.d
+  become: true
   template:
-     src: ./templates/app.j2
-     dest: /etc/nginx/conf.d/app.conf
+    src: ./templates/first-conf.j2
+    dest: /etc/nginx/conf.d/app.conf
 
 - name: Start Nginx
   become: true
@@ -28,5 +31,19 @@
      name: nginx
      enabled: yes
 
+- name: Create certificate SSL Let's Encrypt
+  become: true
+  shell: certbot certonly --webroot -w /usr/share/nginx/html --preferred-challenges=http --email contact@{{ DOMAIN }} --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d {{ DOMAIN }}
 
+- name: Copy conf app to conf.d
+  become: true
+  template:
+     src: ./templates/app.j2
+     dest: /etc/nginx/conf.d/app.conf
+
+- name: Restart Nginx
+  become: true
+  systemd:
+    state: restarted
+    name: nginx
        
