@@ -8,11 +8,11 @@
 
 - name: Create a self signed certificate
   become: true
-  shell: mkdir /certs ; openssl req   -newkey rsa:4096 -nodes -sha256 -keyout /certs/domain.key -x509 -days 365 -out /certs/domain.crt -subj "/C=BR/ST=Brasil/L=Porto Alegre/O=Infra Company/OU=Infra Company/CN=registry.infra-king.tk"
+  shell: mkdir /certs ; openssl req   -newkey rsa:4096 -nodes -sha256 -keyout /certs/domain.key -x509 -days 365 -out /certs/domain.crt -subj "/C=BR/ST=Brasil/L=Porto Alegre/O=Infra Company/OU=Infra Company/CN=registry.{{ DOMAIN }}"
 
 - name: Move crt to /etc/docker/certs.d
   become: true
-  shell: mkdir -p /etc/docker/certs.d/registry.infra-king.tk:5000 ; cp /certs/domain.crt /etc/docker/certs.d/registry.infra-king.tk:5000/ca.crt
+  shell: mkdir -p /etc/docker/certs.d/registry.{{ DOMAIN }}:5000 ; cp /certs/domain.crt /etc/docker/certs.d/{{ DOMAIN }}:5000/ca.crt
 
 - name: Start Registry Docker
   docker_container:
