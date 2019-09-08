@@ -56,3 +56,16 @@
 - name: Add user to group docker
   become: true
   shell: usermod -aG docker "{{ USER }}"
+
+- name: Add user Deploy
+  user:
+    name: deploy
+    groups: docker, google-sudoers
+    append: yes
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+
+- name: Alte permission docker dir and add pubkey in authorized_keys
+  become: true
+  shell: chmod 777 /etc/docker ; echo /home/deploy/.ssh/id_rsa.pub >> /home/deploy/.ssh/authorized_keys ; chmod 600 /home/deploy/.ssh/authorized_keys
