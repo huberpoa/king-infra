@@ -1,0 +1,13 @@
+server{
+    listen 80;
+    listen [::]:80;
+    server_name {{ DOMAIN }};
+
+    location / {
+    }
+
+    location /.well-known/acme-challenge/ {
+         root /usr/share/nginx/html;
+    }
+
+}
