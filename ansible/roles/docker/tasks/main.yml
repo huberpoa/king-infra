@@ -1,10 +1,4 @@
 ---
-- name: Yum Update
-  become: true
-  yum:
-    name: '*'
-    state: latest
-
 - name: Install yum-utils, device-mapper and lvm2
   become: true
   yum:
@@ -58,6 +52,7 @@
   shell: usermod -aG docker "{{ USER }}"
 
 - name: Add user Deploy
+  become: true
   user:
     name: deploy
     groups: docker, google-sudoers
@@ -66,6 +61,6 @@
     ssh_key_bits: 2048
     ssh_key_file: .ssh/id_rsa
 
-- name: Alte permission docker dir and add pubkey in authorized_keys
+- name: Alter permission docker dir and add pubkey in authorized_keys
   become: true
-  shell: chmod 777 /etc/docker ; echo /home/deploy/.ssh/id_rsa.pub >> /home/deploy/.ssh/authorized_keys ; chmod 600 /home/deploy/.ssh/authorized_keys
+  shell: chmod 777 /etc/docker ; cat /home/deploy/.ssh/id_rsa.pub > /home/deploy/.ssh/authorized_keys ; chmod 600 /home/deploy/.ssh/authorized_keys ; chown deploy. authorized_keys
