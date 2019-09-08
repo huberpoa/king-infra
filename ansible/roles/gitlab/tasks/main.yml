@@ -5,7 +5,7 @@
     image: "gitlab/gitlab-ce:latest"
     network_mode: host
     state: started
-    restart_policy: "on-failure"
+    restart_policy: "always"
     ports:
       - "80:80"
       - "443:443"
