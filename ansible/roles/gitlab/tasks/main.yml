@@ -14,3 +14,10 @@
       - "/srv/gitlab/config:/etc/gitlab"
       - "/srv/gitlab/logs:/var/log/gitlab"
       - "/srv/gitlab/data:/var/opt/gitlab"
+
+- name: Copy configuration gitlab.rb to dir config
+  become: true
+  templates:
+    src: ./templates/gitlab-rb.j2
+    dest: /srv/gitlab/config/gitlab.rb
+
