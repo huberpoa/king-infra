@@ -1,0 +1,30 @@
+---
+- name: Install OpenSSL e Ca-certificates
+  become: true
+  yum:
+    name: 
+      - openssl
+      - ca-certificates
+
+- name: Create a self signed certificate
+  become: true
+  shell: mkdir /certs ; openssl req   -newkey rsa:4096 -nodes -sha256 -keyout /certs/domain.key -x509 -days 365 -out /certs/domain.crt -subj "/C=BR/ST=Brasil/L=Porto Alegre/O=Infra Company/OU=Infra Company/CN=registry.infra-king.tk"
+
+- name: Move crt to /etc/docker/certs.d
+  become: true
+  shell: mkdir -p /etc/docker/certs.d/registry.infra-king.tk:5000 ; cp /certs/domain.crt /etc/docker/certs.d/registry.infra-king.tk:5000/ca.crt
+
+- name: Start Registry Docker
+  docker_container:
+     name: registry
+     image: "registry"
+     state: started
+     env:
+        REGISTRY_HTTP_TLS_CERTIFICATE: "/certs/domain.crt"
+        REGISTRY_HTTP_TLS_KEY: "/certs/domain.key"
+     restart_policy: "always"
+     ports:
+        - "5000:5000"
+     volumes:
+        - "/certs:/certs"
+        
