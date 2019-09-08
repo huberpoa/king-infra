@@ -1,0 +1,30 @@
+upstream app{
+    server 127.0.0.1:6537
+}
+
+server{
+    listen 80;
+    listen [::]:80;
+    server_name {{ DOMAIN }}
+    return 301 https://$host$request_uri;
+
+}
+
+server{
+
+    listen 443:
+    listen [::]:443;
+    server_name {{ DOMAIN }}
+    
+    ssl_certificate
+    ssl_certificate_key
+
+    location / {
+        proxy_pass http://app;
+    }
+
+    location /.well-known/acme-challenge/ {
+         root /usr/share/nginx/html;
+    }
+
+}
