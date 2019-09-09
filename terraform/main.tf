@@ -17,7 +17,7 @@ resource "google_compute_firewall" "default" {
 resource "google_compute_instance" "vm_instance" {
     count = 2
 
-    name = "${var.names}-${count.index + 1}"
+    name = "${var.names-servers[count.index]}-${var.names}"
     machine_type = "${var.machine}"
     zone = "${var.region}-a"
 
@@ -37,14 +37,10 @@ resource "google_compute_instance" "vm_instance" {
     }
 
     provisioner "local-exec" {
-        command = "echo ${self.network_interface.0.access_config.0.nat_ip}  ansible_ssh_user=$USER >> hosts"
+        command = "echo '[${var.env[count.index]}]\n${self.network_interface.0.access_config.0.nat_ip}  'ansible_ssh_user=$USER >> hosts"
     }
 }
 
-output "private_ip" {
-  value = "${google_compute_instance.vm_instance.*.network_interface.0.network_ip}"
-}
-
 output "public_ip" {
-  value = "${google_compute_instance.vm_instance.*.network_interface.0.access_config.0.nat_ip}"
+  value = "${google_compute_instance.vm_instance.name} ${google_compute_instance.vm_instance.*.network_interface.0.access_config.0.nat_ip}"
 }
