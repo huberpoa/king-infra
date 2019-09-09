@@ -14,9 +14,9 @@ if [ $? -eq 0 ]
 then
     echo "O Terraform está instalado na sua máquina"
     terraform --version
-    echo ""
+
 else
-    echo "Terraform não está instalado!"
+    echo "\nTerraform não está instalado!"
     echo "Você precisa realizar a instalação desse recurso para prosseguirmos com a construção da nossa estrutura!"
     exit 3
 fi
@@ -26,7 +26,6 @@ if [ $? -eq 0 ]
 then
     echo "O ansible está instalado na sua máquina"
     ansible --version
-    echo ""
 else
     echo "Ansible não está instalado!"
     echo "Você precisa realizar a instalação desse recurso para prosseguirmos com a construção da nossa estrutura!"
@@ -36,18 +35,7 @@ fi
 tput sgr0
 }
 
-## Função que cria as instâncias no GCP com o terraform e executa as roles de configuração com o ansible 
-start_structure(){ 
-
-echo "Perfeito! Então vamos iniciar a construção da nossa estrutura. Mas, primeiramente precisamos que você acesse o painel do GCP e crie um novo projeto."
-echo "Depois de criado o novo projeto no GCP, crie uma credencial para você. Para criar a credencial vá no menu APIs e Serviços > Credenciais > Criar credencias > Criar chave da conta de serviço."
-echo "Preencha as informações e depois de clicar em criar, você irá fazer o download de um arquivo JSON com as suas credencias. GUARDE ESSE ARQUIVO E NÃO DISPONIBILIZE ELE PARA NINGUÉM"
-echo "Depois de criado a credencial, verifique se o seu usuário possui uma chave SSH pois vamos precisar cadastrar ela nos servidores que vamos criar."
-echo "Caso não tenha, utilize o comando ssh-keygen e aperte <ENTER> para prosseguir os passos e depois será criado um diretório chamado .ssh dentro da sua home com os arquivos."
-
-echo ""
-echo ""
-
+get_data(){
 # Pega a informação de onde está o JSON das credencias do GCP 
 tput setaf 3; echo "Me informe o caminho onde está o arquivo JSON do GCP que você fez o download. Exemplo: /home/meuuser/Documentos/Minha-credencial-929482714.json"
 read pathjson;
@@ -57,12 +45,24 @@ read pathpubkey;
 # Pega a informação de qual o projeto criado no GCP
 echo "Qual é o nome do projeto criado no GCP para criar a nossa estrutura:"
 read nameproject;
+}
+
+## Função que cria as instâncias no GCP com o terraform e executa as roles de configuração com o ansible 
+start_structure(){ 
+
+echo "Perfeito! Então vamos iniciar a construção da nossa estrutura. Mas, primeiramente precisamos que você acesse o painel do GCP e crie um novo projeto."
+echo "Depois de criado o novo projeto no GCP, crie uma credencial para você. Para criar a credencial vá no menu APIs e Serviços > Credenciais > Criar credencias > Criar chave da conta de serviço."
+echo "Preencha as informações e depois de clicar em criar, você irá fazer o download de um arquivo JSON com as suas credencias. GUARDE ESSE ARQUIVO E NÃO DISPONIBILIZE ELE PARA NINGUÉM"
+echo "Depois de criado a credencial, verifique se o seu usuário possui uma chave SSH pois vamos precisar cadastrar ela nos servidores que vamos criar."
+echo -e "Caso não tenha, utilize o comando ssh-keygen e aperte <ENTER> para prosseguir os passos e depois será criado um diretório chamado .ssh dentro da sua home com os arquivos.\n"
+
+## Chama função para pegar os dados do usuário
+get_data
 
 ## Vamos executar o terraform init para baixar os providers e depois executar o apply para criar as instâncias no GCP a partir dos dados que foram passados
 cd ./terraform ; > hosts ; terraform init ; terraform apply -var="mypath=$pathjson" -var="user=$USER" -var="pub-key=$pathpubkey" -var="name-project=$nameproject";
 
 ## Verifica se a execução do comando acima foi executado com sucesso
-echo ""
 if [ $? -eq 0 ]
 then
     tput setaf 2; echo "Nossas instâncias foram criadas com sucesso!"
@@ -72,10 +72,10 @@ else
     exit 3
 fi
 
-tput sgr0; echo -e "Agora que você criou as instâncias, pegue os IP's e faça os seguintes apontamentos: \n
-gitlab.seudominio.com para o IP do servidor gitlab-server conforme a ordem que mostra no output \
-registry.seudomoinio.com para o mesmo IP do servidor gitlab-server \
-seudominio.com para o IP do servidor web-server"
+tput sgr0; echo -e "Agora que você criou as instâncias, pegue os IP's e faça os seguintes apontamentos:\n"
+echo "gitlab.seudominio.com para o IP do servidor gitlab-server conforme a ordem que mostra no output;"
+echo "registry.seudomoinio.com para o mesmo IP do servidor gitlab-server"
+echo "seudominio.com para o IP do servidor web-server"
 
 read -p "Pressione <ENTER> após a configuração do DNS para o seu domínio para que possamos prosseguir com a configuração da nossa estrutura!"
 
@@ -86,7 +86,7 @@ echo "Perfeito! Agora que os servidores já estão criados e domínio já está 
 echo ""
 
 echo "Primeiro, vamos instalar o docker nas instâncias."
-
+tput sgr0
 cd ../ansible ; ansible-playbook -i ../terraform/hosts --extra-vars "USER=$USER" main-configure.yml
 
 
@@ -102,10 +102,9 @@ echo -e "A instalação do GitLab demora aproximadamente 4 minutos, então fique
 
 ansible-playbook -i ../terraform/hosts --extra-vars "USER=$USER DOMAIN=$domain" gitlab-main.yml
 
-echo -e "Feito a instalação do GitLab, acesse o endereço gitlab.seudominio e coloque uma nova senha para o usuário root.\n"
-echo -e "Acesse o GitLab com o usuário root e a senha que você cadastrou. \n Então, crie um novo projeto importando o repositório que eu disponibilizei no GitHub chamado devops.\n"
-echo -e "Para importar o repositório do GitHub para o GitLab, clique na aba Import project e selecione o GitHub. \
-Utilize esse token (2584ac7e7ac0868163aafeba5a55cf411e05bc95) para fazer a importação do repo devops.\n"
+echo -e "Feito a instalação do GitLab, acesse o endereço gitlab.$domain e coloque uma nova senha para o usuário root.\n"
+echo -e "Acesse o GitLab com o usuário root e a senha que você cadastrou.\n Então, crie um novo projeto importando o repositório que eu disponibilizei no GitHub chamado devops."
+echo -e "Para importar o repositório do GitHub para o GitLab, clique na aba Import project e selecione o GitHub. Utilize o token enviado via e-mail para fazer a importação do repositório devops para o GitLab.\n"
 
 echo -e "Feito a importação, acesse o projeto e no menu Settings > CI / CD > Runners, pegue o token para registrar um novo runner.\n"
 echo -e "Também, na mesma página vá em Variables e crie duas variáveis:"
@@ -119,12 +118,13 @@ echo -e "Realizado essas configurações, vamos criar a runner para que possamos
 echo "Informe o token para cadastrar um novo runner no GitLab:"
 read tokenrunner
 
-echo -e "/nVamos executar nossa task para criar o runner.\n"
+echo -e "\nVamos executar nossa task para criar o runner.\n"
 
 ansible-playbook -i ../terraform/hosts --extra-vars "USER=$USER DOMAIN=$domain TOKEN_RUNNER=$tokenrunner" gitlab-runner-main.yml 
 
 echo -e "Feito a configuração GitLab Runner, estamos com a nossa estrutura pronta.\n"
-echo -e "Agora, é só partir para o abraço!!!"
+echo -e "Acesse o endereço https://gitlab.$domain e https://$domain e veja o funcionamento!"
+echo -e "Agora, é só partir para o abraço!!!\n"
 
 }
 
@@ -134,12 +134,15 @@ destroy_structure(){
 echo "Você tem certeza que deseja remover toda a estrutura criada? [y/N]"
 read opdestroy
 
-if [ $opdestroy = y || $opdestroy = Y ]
+if [ $opdestroy = y ]
 then 
+    get_data
     cd ./terraform ; > hosts ; terraform destroy -var="mypath=$pathjson" -var="user=$USER" -var="pub-key=$pathpubkey" -var="name-project=$nameproject";
+    echo "Estrutura excluída!!!!"
 else
-    if [ $opdestroy = n || $opdestroy = N ]
+    if [ $opdestroy = N ]
     then
+        echo "Finalizando script!"
         exit 3
     fi
 fi
@@ -155,7 +158,7 @@ echo "Esse projeto foi desenvolvido utilizando as ferramentas Terraform e Ansibl
 check_tools
 
 ## Verificar com o usuário o que ele deseja fazer se é criar a estrutura ou excluir ela
-echo "Visto que as ferramentas estão devidamente instaladas na sua máquina, podemos prosseguir com a execução do nosso script."
+echo "\nVisto que as ferramentas estão devidamente instaladas na sua máquina, podemos prosseguir com a execução do nosso script."
 echo "Para iniciarmos a execução do script, precisamos ver se você deseja criar a estrutura ou excluir ela."
 echo "Então para iniciarmos a criação da nossa estrutura precisamos que você escolha entre a opção de iniciar a criação ou a opção de excluir toda a estrutura."
 tput setaf 3; echo "(C)riar estrutura / (E)xcluir estrutura"
