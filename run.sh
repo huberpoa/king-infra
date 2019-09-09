@@ -110,7 +110,7 @@ echo -e "Feito a importação, acesse o projeto e no menu Settings > CI / CD > R
 echo -e "Também, na mesma página vá em Variables e crie duas variáveis:"
 echo "Uma chamada DEPLOY_KEY e a outra chamada DOMAIN. Você deve criar em maiúsculo."
 echo "O valor da chave DEPLOY_KEY será a chave privada do usuário deploy criado no web-server."
-echo "Então, acesse o servidor web-server, digite sudo su -l deploy e pegue o conteúdo do arquivo /home/deploy/.ssh/id_rsa e salve na chave DEPLOY_KEY."
+echo "Então, acesse o servidor web-server utilizando ssh@IP ou ssh@$domain, digite sudo su -l deploy e pegue o conteúdo do arquivo /home/deploy/.ssh/id_rsa e salve na chave DEPLOY_KEY."
 echo -e "Já para a variável DOMAIN, coloque o domínio sem HTTP/HTTPS, www e barras.\n"
 
 echo -e "Realizado essas configurações, vamos criar a runner para que possamos executar o CI / CD.\n"
