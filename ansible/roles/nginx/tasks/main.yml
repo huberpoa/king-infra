@@ -73,7 +73,8 @@
     repo: https://github.com/willalbiero/devops.git
     dest: /opt/dev
 
-- name: Build image 
+- name: Build image
+  become: true
   docker_image:
     build:
       path: /opt/dev
@@ -81,6 +82,7 @@
     tag: latest
 
 - name: Starting container image
+  become: true
   docker_container:
      name: king-infra
      image: king-infra
