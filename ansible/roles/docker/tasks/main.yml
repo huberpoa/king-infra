@@ -1,0 +1,66 @@
+---
+- name: Install yum-utils, device-mapper and lvm2
+  become: true
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2
+
+- name: Add Docker repo
+  become: true
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+
+- name: Enable Docker repo
+  become: true
+  ini_file:
+    dest: /etc/yum.repos.d/docker-ce.repo
+    section: 'docker-ce-edge'
+    option: enable
+    value: 0
+    
+- name: Install Docker
+  become: true
+  yum:
+    name: 
+    - python
+    - python-pip
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - git
+
+- name: Install Docker-py
+  become: true
+  pip:
+    name: docker-py
+    state: latest
+
+- name: Start Docker
+  become: true
+  systemd:
+    state: started
+    name: docker
+    enabled: yes
+
+- name: Add user to group docker
+  become: true
+  shell: usermod -aG docker "{{ USER }}"
+
+- name: Add user Deploy
+  become: true
+  user:
+    name: deploy
+    groups: docker, google-sudoers
+    append: yes
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+
+- name: Alter permission docker dir and add pubkey in authorized_keys
+  become: true
+  shell: chmod 777 /etc/docker ; cat /home/deploy/.ssh/id_rsa.pub > /home/deploy/.ssh/authorized_keys ; chmod 600 /home/deploy/.ssh/authorized_keys ; chown deploy. /home/deploy/.ssh/authorized_keys

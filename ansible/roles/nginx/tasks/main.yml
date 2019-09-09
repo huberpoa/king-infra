@@ -1,0 +1,96 @@
+---
+- name: Disable SElinux
+  become: true
+  selinux:
+    state: disabled
+
+- name: Install Nginx
+  become: true
+  yum:
+    name:
+    - epel-release
+    - nginx
+
+- name: Copy nginx.conf to root directory
+  become: true
+  template:
+    src: ./templates/nginx-conf.j2
+    dest: /etc/nginx/nginx.conf
+
+- name: Copy first conf to conf.d
+  become: true
+  template:
+    src: ./templates/first-conf.j2
+    dest: /etc/nginx/conf.d/app.conf
+
+- name: Start Nginx
+  become: true
+  systemd:
+     state: started
+     name: nginx
+     enabled: yes
+
+- name: Install Dependencies Certbot
+  become: true
+  yum:
+    name: "{{ packscertbot }}"
+  vars:
+    packscertbot:
+      - augeas-libs
+      - gcc
+      - libffi-devel
+      - openssl-devel
+      - python-devel
+      - python-tools
+      - python-virtualenv
+      - redhat-rpm-config
+
+- name: Clone repo Certbot
+  become: true
+  git:
+    repo: https://github.com/certbot/certbot.git
+    dest: /opt/certbot
+
+- name: Create certificate SSL Let's Encrypt
+  become: true
+  shell: /opt/certbot/certbot-auto certonly --webroot -w /usr/share/nginx/html --preferred-challenges=http --email contact@{{ DOMAIN }} --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d {{ DOMAIN }}
+
+- name: Copy conf app to conf.d
+  become: true
+  template:
+     src: ./templates/app.j2
+     dest: /etc/nginx/conf.d/app.conf
+
+- name: Restart Nginx
+  become: true
+  systemd:
+    state: restarted
+    name: nginx
+
+- name: Clone from repository
+  become: true
+  git:
+    repo: https://github.com/willalbiero/devops.git
+    dest: /opt/dev
+
+- name: Build image
+  become: true
+  docker_image:
+    build:
+      path: /opt/dev
+    name: king-infra
+    tag: latest
+
+- name: Starting container image
+  become: true
+  docker_container:
+     name: king-infra
+     image: king-infra
+     state: started
+     ports:
+       - "6537:8080"
+
+- name: Remove directory of repository 
+  become: true
+  shell: rm -rf /opt/dev
+  

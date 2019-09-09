@@ -1,0 +1,16 @@
+--- 
+- name: Start GitLab Runner
+  become: true
+  docker_container:
+     name: gitlab-runner
+     image: "gitlab/gitlab-runner:latest"
+     state: started
+     restart_policy: "always"
+     volumes:
+        - "/srv/gitlab-runner/config:/etc/gitlab-runner"
+        - "/etc/docker:/etc/docker"
+        - "/var/run/docker.sock:/var/run/docker.sock"
+
+- name: Regiter Runner
+  become: true
+  shell: docker exec gitlab-runner gitlab-runner register --non-interactive --url "https://gitlab.{{ DOMAIN }}/" --registration-token "{{ TOKEN_RUNNER }}" --executor "docker" --docker-image "ruby:2.6" --description "ci-repo" --tag-list "docker" --docker-privileged="true" --docker-volumes="/etc/docker:/etc/docker"

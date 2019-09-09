@@ -1,0 +1,6 @@
+/.terraform
+terraform.*
+hosts
+*.retry
+lock.json
+terraform-*

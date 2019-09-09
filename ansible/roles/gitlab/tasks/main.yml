@@ -1,0 +1,29 @@
+---
+- name: Start Container GitLab
+  become: true
+  docker_container:
+    name: gitlab
+    image: "gitlab/gitlab-ce:latest"
+    state: started
+    restart_policy: "always"
+    ports:
+      - "80:80"
+      - "443:443"
+ 
+    volumes:
+      - "/srv/gitlab/config:/etc/gitlab"
+      - "/srv/gitlab/logs:/var/log/gitlab"
+      - "/srv/gitlab/data:/var/opt/gitlab"
+
+- name: Copy configuration gitlab.rb to dir config
+  become: true
+  template:
+    src: ./templates/gitlab-rb.j2
+    dest: /srv/gitlab/config/gitlab.rb
+
+- pause:
+    minutes: 4
+
+- name: Reconfigure GitLab to Let's Encrypt
+  become: true
+  shell: docker exec gitlab gitlab-ctl reconfigure
