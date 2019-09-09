@@ -2,8 +2,8 @@ letsencrypt['enable'] = true                      # GitLab 10.5 and 10.6 require
 external_url "https://gitlab.{{ DOMAIN }}"         # Must use https protocol
 letsencrypt['contact_emails'] = ['contato@{{ DOMAIN }}'] # Optional
 
-nginx['redirect_http_to_https'] = true
-nginx['redirect_http_to_https_port'] = 80
+#nginx['redirect_http_to_https'] = true
+#nginx['redirect_http_to_https_port'] = 80
 
 ## GitLab configuration settings
 ##! This file is generated during initial installation and **is not** modified
