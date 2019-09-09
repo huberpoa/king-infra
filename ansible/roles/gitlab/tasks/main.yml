@@ -1,9 +1,9 @@
 ---
 - name: Start Container GitLab
+  become: true
   docker_container:
     name: gitlab
     image: "gitlab/gitlab-ce:latest"
-    network_mode: host
     state: started
     restart_policy: "always"
     ports:
@@ -17,7 +17,10 @@
 
 - name: Copy configuration gitlab.rb to dir config
   become: true
-  templates:
+  template:
     src: ./templates/gitlab-rb.j2
     dest: /srv/gitlab/config/gitlab.rb
 
+#- name: Create SSL Let's Encrypt for GitLab
+#  become: true
+#  shell: docker exec gitlab gitlab-ctl reconfigure
