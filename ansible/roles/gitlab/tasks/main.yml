@@ -20,3 +20,10 @@
   template:
     src: ./templates/gitlab-rb.j2
     dest: /srv/gitlab/config/gitlab.rb
+
+- pause:
+    minutes: 4
+
+- name: Reconfigure GitLab to Let's Encrypt
+  become: true
+  shell: docker exec gitlab gitlab-ctl reconfigure
