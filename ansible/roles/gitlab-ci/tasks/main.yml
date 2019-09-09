@@ -11,22 +11,6 @@
         - "/etc/docker:/etc/docker"
         - "/var/run/docker.sock:/var/run/docker.sock"
 
-- name: Copy config.toml Runner 
-  template:
-     src: ./templates/config.j2
-     dest: /srv/gitlab-runner/config/config.toml
-
-- name: Install Module pyapi-gitlab
+- name: Regiter Runner
   become: true
-  pip:
-    name: pyapi-gitlab
-    state: latest
-
-
-#- name: Create Repository In GitLab
-#  gitlab_project:
-#     server_url: "{{ DOMAIN_GITLAB }}"
-#     login_token: "{{ TOKEN_API_GITLAB }}"
-#     name: king-infra
-#     group: infra
-#     state: present
+  shell: docker exec gitlab-runner gitlab-runner register --non-interactive --url "https://gitlab.{{ DOMAIN }}/" --registration-token "{{ TOKEN_RUNNER }}" --executor "docker" --docker-image "ruby:2.6" --description "ci-repo" --tag-list "docker" --docker-privileged="true" --docker-volumes="/etc/docker:/etc/docker"
