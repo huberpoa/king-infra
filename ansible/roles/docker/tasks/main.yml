@@ -63,4 +63,4 @@
 
 - name: Alter permission docker dir and add pubkey in authorized_keys
   become: true
-  shell: chmod 777 /etc/docker ; cat /home/deploy/.ssh/id_rsa.pub > /home/deploy/.ssh/authorized_keys ; chmod 600 /home/deploy/.ssh/authorized_keys ; chown deploy. authorized_keys
+  shell: chmod 777 /etc/docker ; cat /home/deploy/.ssh/id_rsa.pub > /home/deploy/.ssh/authorized_keys ; chmod 600 /home/deploy/.ssh/authorized_keys ; chown deploy. /home/deploy/.ssh/authorized_keys
