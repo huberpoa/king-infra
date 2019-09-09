@@ -1,0 +1,4 @@
+- hosts: production
+  gather_facts: false
+  roles:
+    - nginx
