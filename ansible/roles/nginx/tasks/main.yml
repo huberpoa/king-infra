@@ -10,7 +10,6 @@
     name:
     - epel-release
     - nginx
-    - certbot
 
 - name: Copy nginx.conf to root directory
   become: true
@@ -31,9 +30,30 @@
      name: nginx
      enabled: yes
 
+- name: Install Dependencies Certbot
+  become: true
+  yum:
+    name: "{{ packscertbot }}"
+  vars:
+    packscertbot:
+      - augeas-libs
+      - gcc
+      - libffi-devel
+      - openssl-devel
+      - python-devel
+      - python-tools
+      - python-virtualenv
+      - redhat-rpm-config
+
+- name: Clone repo Certbot
+  become: true
+  git:
+    repo: https://github.com/certbot/certbot.git
+    dest: /opt/certbot
+
 - name: Create certificate SSL Let's Encrypt
   become: true
-  shell: certbot certonly --webroot -w /usr/share/nginx/html --preferred-challenges=http --email contact@{{ DOMAIN }} --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d {{ DOMAIN }}
+  shell: /opt/certbot/certbot-auto certonly --webroot -w /usr/share/nginx/html --preferred-challenges=http --email contact@{{ DOMAIN }} --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d {{ DOMAIN }}
 
 - name: Copy conf app to conf.d
   become: true
