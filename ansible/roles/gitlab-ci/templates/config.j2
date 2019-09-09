@@ -6,7 +6,7 @@ check_interval = 0
 
 [[runners]]
   name = "ci-repo"
-  url = "{{ URL_GITLAB }}"
+  url = "https://gitlab.{{ DOMAIN }}/"
   token = "{{ TOKEN_RUNNER }}"
   executor = "docker"
   [runners.custom_build_dir]
