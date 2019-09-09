@@ -12,7 +12,7 @@
 
 - name: Move crt to /etc/docker/certs.d
   become: true
-  shell: mkdir -p /etc/docker/certs.d/registry.{{ DOMAIN }}:5000 ; cp /certs/domain.crt /etc/docker/certs.d/{{ DOMAIN }}:5000/ca.crt
+  shell: mkdir -p /etc/docker/certs.d/registry.{{ DOMAIN }}:5000 ; cp /certs/domain.crt /etc/docker/certs.d/registry.{{ DOMAIN }}:5000/ca.crt
 
 - name: Start Registry Docker
   docker_container:
