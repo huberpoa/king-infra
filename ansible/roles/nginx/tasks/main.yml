@@ -66,4 +66,29 @@
   systemd:
     state: restarted
     name: nginx
-       
+
+- name: Clone from repository
+  become: true
+  git:
+    repo: https://github.com/willalbiero/devops.git
+    dest: /opt/dev
+
+- name: Build image 
+  docker_image:
+    build:
+      path: /opt/dev
+    name: king-infra
+    tag: latest
+
+- name: Starting container image
+  docker_container:
+     name: king-infra
+     image: king-infra
+     state: started
+     ports:
+       - "6537:8080"
+
+- name: Remove directory of repository 
+  become: true
+  shell: rm -rf /opt/dev
+  
