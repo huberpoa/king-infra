@@ -4,8 +4,20 @@ variable "region" {
 
 variable "name-project" {}
 
+variable "env" {
+    type = "list"
+    default = ["gitlab", "production"]
+  
+}
+
+variable "names-servers" {
+    type = "list"
+    default = ["gitlab", "web"]
+  
+}
+
 variable "names" {
-  default = "web-server"
+  default = "server"
 }
 
 variable "machine" {
