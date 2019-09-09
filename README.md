@@ -1,76 +1,42 @@
 # Divertindo-se com Infra as Code - Desafio Prático
 
-## O que é?
+## Tecnologias e por quê?
 
-Este projeto faz parte do processo seletivo para o cargo de Analista de Infraestrutura Ágil da KingHost. :)
+Para esse projeto, decidi utilizar o Google Cloud Platform e o GitLab para trabalhar com o repositório e o CI/CD.
+Já nas ferramentas de automatização, utilizei o Terraform para provisionar as instâncias no GCP e Ansible para fazer as configurações dos ambientes.
+Como eu já tinha participado do projeto anterior, eu já tinha 80% da estrutura pronta para utilizar nesse novo processo.
+Porém, para ser justo, eu resolvi utilizar outras tecnologias que eu não tinha utilizado no processo anterior.
+No primeiro processo, eu trabalhei com a AWS como provider e o Jenkins para o CI/CD e o Ansible para criar as instâncias e realizar toda a configuração da estrutura. 
 
-Este desafio foi projetado a fim de medir seu nível de conhecimento com tecnologias DevOps e players de cloud pública, e suas capacidades de propor novas ideias e arquiteturas para nossos serviços, sempre com o foco de manter os ambientes seguros.
+Na minha experiência com a utiilização da AWS e GCP, as configurações a serem realizadas na AWS são bem complexas e você precisa compreender muito bem a estrutura e nomenclatura dos recursos para ter um trabalho mais objetivo.
+Comparando com o GCP, a estrutura e nomenclatura do recursos são mais simples e mais fáceis de trabalhar.
+Além disso, a conta free da AWS disponibiliza uma máquina que não é tão potente e que na hora de subir o GitLab, ele não consegue.
+Esse foi um dos motivos na outra prova anterior, de utilizar o Jenkins por ele ser mais leve.
 
-## Introdução
+Já para o Terraform, escolhi trabalhar com ela por ser uma ferramenta muito simples para criar uma instância/máquina no ambiente Cloud.
+Além disso, a sua instalação no ambiente local é muito fácil, pois você baixa o binário e insere no /usr/bin da sua máquina.
 
-Um de nossos projetos internos necessita de um novo ambiente que permita desenvolvimento e deploy de forma automatizada e contínua. Para isto, você, no papel de Analista de Infraestrutura Ágil, foi chamado para elaborar uma infraestrutura a fim de atender a esta demanda dos times de desenvolvimento.
+O Ansible, eu utilizei por ter uma documentação muito sólida e com uma boa comunidade.
+E apesar de a sintaxe ser um pouco chata com relação a formatação pois não pode haver espaços soltos, ela utiliza uma linguagem chamada YAML que é de fácil entedimento para nós. 
 
-Para isto, foram estipuladas algumas necessidades, as quais devem ser atendidas:
+## Decições
 
-* A infraestrutura deverá ser provisionada na AWS ou GCP usando ferramenta de gerenciamento de infraestrutura como código, sem utilização de ferramentas próprias desses players (crie uma conta gratuita para prosseguir);
-* Deverá ser instalada e configurada uma ferramenta de CI/CD de sua preferência usando ferramentas de automação de IT;
-* Deverá ser criado um pipeline de push deploy dentro da ferramenta de CI/CD, a qual será responsável por reconstruir a imagem em caso de alterações em seus requisitos e publicá-la no servidor de produção, e;
-* **(Extra)** Toda arquitetura deverá ser disponibilizada através da execução de um simples shell script.
+Como já mencionado acima, tive a decição de trabalhar com o provider e ferramentas pela a questão de simplicidade e pelas experiências anteriores.
+Quanto ao planejamento, não tive impasses para formar a estrutura pois consegui formalizar a estrutura antes de iniciar e a partir desse primeiro planejamento, não tive contratempo.
+E as dificuldades que obtive foram no registry que criei e também no deploy do container no ambiente de produção a partir do pipeline que era executado no CI/CD.
+O problema com o registry era que quando era feito o push ou pull para ele, era retornado a informação de que ele não tinha HTTPS.
+E como não tinha uma forma de criar um Let's Encrypt para corrigir esse problemas, criei um SSL auto-assinado.
+Mas infelizmente, com o certificado auto-assinado na hora de realizar o push ou pull, ele não conseguia validar o certificado.
+Então, depois de ver alguns fóruns, consegui encontrar uma solução de inserir o certificado auto-assinado dentro do diretório certs.d no diretório do docker (/etc/docker). Somente dessa forma, eu consegui fazer os procedimentos de push e pull.
 
-A principal ideia aqui é que você **faça por você mesmo (DIY)**.
-	
-## Requisitos técnicos
+Quanto ao deploy, no .gitlab-cy.yml eu não tinha uma ideia formada para que fosse feito o deploy do container no servidor de produção.
+Depois de pensar em algumas formas, tive a ideia de colocar a chave privada de um usuário criado no servidor de produção em uma variável e apartir do SSH, enviar os comandos de docker pull e docker run.
+Para fazer a utilização do SSH e chave, resolvi utilizar o ssh-agent e com um auxilio de fórum, consegui que ele realizasse o deploy perfeitamente.
 
-Para realização deste desafio, deverão ser observados os seguintes requisitos:
+## Como utilizar?
 
-* A aplicação deverá ser hospedada em ambiente conteinerizado, com os seguintes requisitos:
-	* A imagem deve partir de um sistema operacional limpo (Ubuntu ou Alpine), sem adicionais instalados;
-	* Nessa imagem, deverá executar um web server + PHP-FPM, e a aplicação deverá ser hospedada em /home/app;
-* A máquina onde rodará a aplicação deverá conter um web server Nginx, o qual se comunicará com o container via proxy, e deverá escutar nas portas 80 e 443;
-* A infraestrutura proposta deverá contemplar a possibilidade de utilização por múltiplos projetos, e;
-* Obviamente, todo o código da infraestrutura deve estar versionado. :)
-	
-As configurações devem, sempre, prezar pelas boas práticas de segurança, com principal atenção aos seguintes pontos:
+Criei um arquivo Shell Script para que fosse realizado a criação da nossa estrutura. 
+O arquivo que criei é o run.sh. Para utilizar esse sh, execute o comando "chmod +x run.sh" e depois execute "./run".
+Nesse arquivo, criei todo o passo a passo das informações que são necessárias para criar a estrutura.
 
-* O acesso aos servidores deverá ser possível apenas utilizando chave SSH;
-* O repositório não deverá contar com nenhum arquivo que possua dados sensíveis **(caráter eliminatório)**;
-* Priorizar sempre o acesso HTTPS (o certificado poderá ser auto-assinado para fins do desafio).
-
-Documentação é primordial! Então, priorize os comentários em seu código sempre que possível. :)
-
-## Por onde começar?
-
-Para ajudá-lo em sua jornada, abaixo tem algumas fontes de documentação que você poderá utilizar, caso não saibas por onde iniciar.
-
-* https://github.com/terraform-providers
-* https://github.com/ansible/ansible-examples
-* https://hub.docker.com/
-
-Você tem alguma dúvida? Você pode enviar um e-mail para alessandro.santos@kinghost.com.br a qualquer momento, que iremos o mais breve possível retorná-lo. ;)
-	
-## Entregáveis
-
-Ao final do desafio, você deverá realizar um "pull request" neste repositório, o qual deverá conter o seguinte conteúdo:
-
-* Todo e qualquer arquivo necessário para que possamos reproduzir a infra criada em nossas contas nos players supracitados, e;
-* Arquivo README.md, contendo:
-	* Instruções de como executar a infraestrutura entregue;
-	* Ferramentas utilizadas, e o por que estas foram escolhidas para a realização do desafio, e;
-	* Decisões adotadas durante o planejamento e execução do desafio, justificando-as.
-
-**IMPORTANTE: Mesmo que você não consiga concluir o desafio por completo, envie o que você conseguiu fazer!** Iremos avaliar todo e qualquer desenvolvimento que você nos apresentar! O mais importante deste desafio é, que ao final dele, você adquira novos conhecimentos ou aprimore os que você já possui. ;)
-
-Após, envie e-mail para o e-mail nicole.santos@kinghost.com.br, com cópia para alessandro.santos@kinghost.com.br e douglas@kinghost.com.br, com o assunto **"Desafio Prático Infraestrutura Ágil"**, sinalizando a entrega do desafio para avaliação.
-
-## Prazo para conclusão
-
-Está informado no e-mail enviado junto com o endereço deste desafio.
-
-## O que será avaliado?
-
-* Flexibilidade
-* Maneira como você está entregando este desafio
-* Capacidade de tomada de decisões técnicas
-* Complexidade
-	
-**Good luck and having fun! ;)**
+William Albiero
