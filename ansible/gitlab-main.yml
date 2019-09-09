@@ -1,0 +1,5 @@
+- hosts: gitlab
+  gather_facts: false
+  roles:
+    - gitlab
+    - registry-docker
